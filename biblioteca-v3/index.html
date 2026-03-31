@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="LeiturAção — Biblioteca digital gratuita para comunidades. Milhares de livros sem custo e sem barreiras." />
+  <meta name="theme-color" content="#0B1F3A" />
+  <title>LeiturAção — Biblioteca Digital</title>
+
+  <!-- Preconnect fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- ══════════════════════════════════════
+       TOP BAR
+       ══════════════════════════════════════ -->
+  <div id="top-bar">
+    <span>📚</span>
+    Biblioteca 100% gratuita —  sem cadastro, sem custo, sem anúncios
+  </div>
+
+  <!-- ══════════════════════════════════════
+       NAVBAR  (sticky, persiste entre páginas)
+       ══════════════════════════════════════ -->
+  <header id="navbar">
+    <div class="container nav-wrap">
+
+      <!-- Logo -->
+      <a class="logo" href="#home" onclick="return false;" data-route="home">
+        <div class="logo-mark">📚</div>
+        <div class="logo-name">Leitur<span>Ação</span></div>
+      </a>
+
+      <!-- Desktop nav links -->
+      <nav class="nav-links" aria-label="Navegação principal">
+        <button class="nav-link active" data-route="home">Início</button>
+        <button class="nav-link" data-route="educacao">Educação</button>
+        <button class="nav-link" data-route="literatura">Literatura</button>
+        <button class="nav-link" data-route="infantil">Infantil</button>
+        <button class="nav-link" data-route="cidadania">Cidadania</button>
+      </nav>
+
+      <!-- Sticky search -->
+      <div class="nav-search">
+        <span class="search-icon">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+        </span>
+        <input id="nav-search-input" type="search" placeholder="Buscar livros…" aria-label="Buscar livros" />
+      </div>
+
+      <!-- Hamburger (mobile) -->
+      <button class="nav-burger" id="nav-burger" aria-label="Abrir menu">
+        <span></span><span></span><span></span>
+      </button>
+
+    </div>
+  </header>
+
+  <!-- ══════════════════════════════════════
+       MOBILE DRAWER MENU
+       ══════════════════════════════════════ -->
+  <div class="mobile-menu" id="mobile-menu" role="dialog" aria-modal="true" aria-label="Menu de navegação">
+    <div class="mobile-overlay" id="mobile-overlay"></div>
+    <div class="mobile-drawer">
+      <div class="drawer-logo">
+        <div class="logo">
+          <div class="logo-mark">📚</div>
+          <div class="logo-name">Leitur<span style="color:#B8832A">Ação</span></div>
+        </div>
+      </div>
+
+      <nav aria-label="Menu mobile">
+        <button class="drawer-link active" data-route="home">
+          <span class="di">🏠</span> Início
+        </button>
+        <button class="drawer-link" data-route="educacao">
+          <span class="di">🎓</span> Educação & Futuro
+        </button>
+        <button class="drawer-link" data-route="literatura">
+          <span class="di">📚</span> Tesouros da Literatura
+        </button>
+        <button class="drawer-link" data-route="infantil">
+          <span class="di">🌟</span> Kids & Alfabetização
+        </button>
+        <button class="drawer-link" data-route="cidadania">
+          <span class="di">🏛️</span> Guia do Cidadão
+        </button>
+      </nav>
+
+      <div class="drawer-divider"></div>
+
+      <button class="drawer-link" data-route="home" style="color:#B8832A;font-weight:600">
+        <span class="di">❤️</span> Como Ajudar
+      </button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       APP SHELL  (conteúdo injetado pelo JS)
+       ══════════════════════════════════════ -->
+  <main id="app" role="main">
+    <!-- Conteúdo renderizado pelo router em js/main.js -->
+    <div style="display:flex;align-items:center;justify-content:center;min-height:60vh;color:#9CA3AF">
+      <p>Carregando…</p>
+    </div>
+  </main>
+
+  <!-- ══════════════════════════════════════
+       FOOTER  (persiste entre páginas)
+       ══════════════════════════════════════ -->
+  <footer>
+    <div class="container">
+      <div class="footer-grid">
+
+        <!-- Brand -->
+        <div class="footer-brand">
+          <div class="logo">
+            <div class="logo-mark">📚</div>
+            <div class="logo-name" style="color:#fff">Leitur<span>Ação</span></div>
+          </div>
+          <p class="footer-desc">Democratizando o acesso à leitura em comunidades carentes do Brasil desde 2018.</p>
+          <div class="social-row">
+            <a class="soc-btn" href="#" title="Instagram" aria-label="Instagram">IG</a>
+            <a class="soc-btn" href="#" title="Facebook"  aria-label="Facebook">FB</a>
+            <a class="soc-btn" href="#" title="YouTube"   aria-label="YouTube">YT</a>
+            <a class="soc-btn" href="#" title="WhatsApp"  aria-label="WhatsApp">WA</a>
+          </div>
+        </div>
+
+        <!-- Acervo -->
+        <div class="footer-col">
+          <h5>Acervo</h5>
+          <a href="#" onclick="navigate('educacao');return false">Educação & Futuro</a>
+          <a href="#" onclick="navigate('literatura');return false">Tesouros da Literatura</a>
+          <a href="#" onclick="navigate('infantil');return false">Kids & Alfabetização</a>
+          <a href="#" onclick="navigate('cidadania');return false">Guia do Cidadão</a>
+          <a href="#">Novidades</a>
+        </div>
+
+        <!-- Contato -->
+        <div class="footer-col">
+          <h5>Contato & Ajuda</h5>
+          <a href="mailto:contato@leituracao.org.br">📧 contato@leituracao.org.br</a>
+          <a href="#">📍 São Paulo, SP</a>
+          <a href="#">📞 (11) 99999-0000</a>
+          <a href="#" style="margin-top:.5rem;color:#B8832A;font-weight:600">❤️ Quero Ajudar</a>
+          <a href="#">✍️ Publicar meu Livro</a>
+        </div>
+
+      </div>
+
+      <div class="footer-bottom">
+        <p>© 2025 LeiturAção ONG — CNPJ 00.000.000/0001-00. Todos os direitos reservados.</p>
+        <p>Feito com ❤️ para quem mais precisa</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- JS (carregado ao final do body para performance) -->
+  <script src="js/main.js"></script>
+
+</body>
+</html>
