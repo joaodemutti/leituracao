@@ -243,7 +243,11 @@ class TableClient {
           const errorData = await response.json();
           errorMessage =
             errorData.message || errorData.error_description || errorMessage;
-        } catch {}
+        } catch (parseError) {
+          errorMessage = parseError?.message
+            ? `${errorMessage}: ${parseError.message}`
+            : errorMessage;
+        }
 
         const error = {
           status: response.status,
