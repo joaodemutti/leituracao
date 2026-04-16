@@ -10,7 +10,7 @@
  * 4. Fornecer dados para análise
  */
 
-import { supabase } from "./supabase.js";
+import { supabase } from "../lib/supabase.js";
 
 /**
  * Inicia a leitura de um livro

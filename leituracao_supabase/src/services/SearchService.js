@@ -14,9 +14,9 @@
 import { CATEGORIES } from "../data/database.js";
 
 /**
- * @typedef {import('./database.js').Book & { catId: string, catLabel: string }} SearchResult
+ * @typedef {import('/database.js').Book & { catId: string, catLabel: string }} SearchResult
  */
-
+  
 /**
  * Busca livros em todas as categorias pelo texto fornecido.
  * A busca é case-insensitive e verifica título, autor e resumo.

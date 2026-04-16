@@ -1,8 +1,23 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { isAcervoSection } from "../data/categoriesNav";
+import { getCurrentUser, logoutUser } from "../services/AuthService";
 
 export default function Navbar({ currentPage }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    // Carregar usuário ao montar
+    getCurrentUser().then(setUser);
+
+    // Escutar mudanças de hash para atualizar usuário
+    const handleHashChange = async () => {
+      const currentUser = await getCurrentUser();
+      setUser(currentUser);
+    };
+    window.addEventListener("hashchange", handleHashChange);
+    return () => window.removeEventListener("hashchange", handleHashChange);
+  }, []);
 
   const navLinks = [
     { route: "home", label: "Início" },
@@ -10,6 +25,13 @@ export default function Navbar({ currentPage }) {
     { route: "metas", label: "Metas" },
     { route: "ranking", label: "Ranking" },
   ];
+
+  const handleLogout = async () => {
+    await logoutUser();
+    setUser(null);
+    window.location.hash = "home";
+    setMobileMenuOpen(false);
+  };
 
   const handleNavigate = (route) => {
     window.location.hash = route;
@@ -87,19 +109,38 @@ export default function Navbar({ currentPage }) {
         </div>
 
         {/* Auth Links - Desktop */}
-        <div className="hidden md:flex gap-3 ml-4">
-          <button
-            onClick={() => handleNavigate("login")}
-            className="text-sm font-medium text-gray-500 hover:text-navy transition-colors"
-          >
-            Entrar
-          </button>
-          <button
-            onClick={() => handleNavigate("register")}
-            className="text-sm font-medium text-gray-500 hover:text-navy transition-colors"
-          >
-            Cadastrar
-          </button>
+        <div className="hidden md:flex gap-3 ml-4 items-center">
+          {user ? (
+            <>
+              <button
+                onClick={() => handleNavigate("profile")}
+                className="text-sm font-medium text-navy hover:opacity-70 transition-opacity"
+              >
+                👤 {user.name || user.username}
+              </button>
+              <button
+                onClick={handleLogout}
+                className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors"
+              >
+                Sair
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={() => handleNavigate("login")}
+                className="text-sm font-medium text-gray-500 hover:text-navy transition-colors"
+              >
+                Entrar
+              </button>
+              <button
+                onClick={() => handleNavigate("register")}
+                className="text-sm font-medium text-gray-500 hover:text-navy transition-colors"
+              >
+                Cadastrar
+              </button>
+            </>
+          )}
         </div>
 
         {/* Mobile Menu Button */}

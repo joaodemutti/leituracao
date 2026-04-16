@@ -37,6 +37,23 @@ export const arteBooks = [
       "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=400&fit=crop",
   },
   {
+    id: "a4",
+    title: "Música e Sociedade",
+    author: "Simon Frith",
+    summary:
+      "Exploração das relações entre música, cultura e sociedade, com foco na música popular e suas implicações sociais.",
+    cover: "cover-art-3",
+    emoji: "🎵",
+    badge: "free",
+    size: "3.1MB",
+    cat: "Música",
+    url: "https://gutendex.com/books/3",
+    pdfUrl: "https://gutendex.com/books/3.pdf",
+    coverImage:
+      "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=300&h=400&fit=crop",
+  },
+
+  {
     id: "a3",
     title: "Música e Sociedade",
     author: "Simon Frith",
@@ -53,3 +70,5 @@ export const arteBooks = [
       "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=300&h=400&fit=crop",
   },
 ];
+
+

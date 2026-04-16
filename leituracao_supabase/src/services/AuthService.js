@@ -9,7 +9,7 @@
  * Todas as funções são assíncronas (retornam Promise).
  */
 
-import { supabase } from "./supabase.js";
+import { supabase } from "../lib/supabase.js";
 
 // ─── Sessão em memória ────────────────────────────────────────────
 let _currentUser = null;

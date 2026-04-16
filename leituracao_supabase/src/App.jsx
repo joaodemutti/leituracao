@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { initAuth } from "./services/AuthService";
+import { initAuth, isLoggedIn } from "./services/AuthService";
 import Navbar from "./components/Navbar";
 import TopBar from "./components/TopBar";
 import HomePage from "./pages/HomePage";
@@ -11,6 +11,16 @@ import AcervoPage from "./pages/AcervoPage";
 import MetasPage from "./pages/MetasPage";
 import RankingPage from "./pages/RankingPage";
 import NotFound from "./pages/NotFound";
+
+// Rotas públicas (não precisa autenticação)
+const PUBLIC_PAGES = ["home", "login", "register"];
+
+// Rotas que precisam de autenticação
+const PROTECTED_PAGES = {
+  profile: ProfilePage,
+  metas: MetasPage,
+  ranking: RankingPage,
+};
 
 const PAGES = {
   home: HomePage,
@@ -53,6 +63,11 @@ export default function App() {
 
     return () => window.removeEventListener("hashchange", handleHashChange);
   }, []);
+
+  // Verificar se a página está protegida e não tem autenticação
+  if (currentPage in PROTECTED_PAGES && !isLoggedIn()) {
+    window.location.hash = "login";
+  }
 
   if (!isInitialized) {
     return (

@@ -49,32 +49,31 @@ export default function HomePage() {
   return (
     <main className="min-h-screen bg-cream px-4 py-8 md:py-10">
       <div className="container space-y-6">
-        <section className="bg-gradient-to-r from-navy via-navy-mid to-navy rounded-xl p-6 md:p-8 text-white shadow-lg">
-          <p className="text-xs uppercase tracking-[0.2em] text-gold mb-2">
-            Bom dia, Maria
-          </p>
-          <h1 className="text-3xl md:text-4xl font-serif font-bold leading-tight mb-2">
-            Continue sua jornada de leitura
-          </h1>
-          <p className="text-white/80 text-sm md:text-base max-w-2xl">
-            Você está no caminho certo. Registre suas leituras, ganhe XP e suba
-            no ranking.
-          </p>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <button
-              onClick={() => (window.location.hash = "register")}
-              className="px-5 py-2.5 rounded-full bg-gold text-navy font-semibold text-sm hover:bg-[#cf9a45] transition-colors"
-            >
-              Criar conta gratuita
-            </button>
-            <button
-              onClick={() => (window.location.hash = "login")}
-              className="px-5 py-2.5 rounded-full border border-white/40 text-white font-medium text-sm hover:bg-white/10 transition-colors"
-            >
-              Entrar na minha conta
-            </button>
-          </div>
-        </section>
+        {!isLoggedIn && (
+          <section className="bg-gradient-to-r from-navy via-navy-mid to-navy rounded-xl p-6 md:p-8 text-white shadow-lg">
+            <h1 className="text-3xl md:text-4xl font-serif font-bold leading-tight mb-2">
+              Continue sua jornada de leitura
+            </h1>
+            <p className="text-white/80 text-sm md:text-base max-w-2xl">
+              Você está no caminho certo. Registre suas leituras, ganhe XP e suba
+              no ranking.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <button
+                onClick={() => (window.location.hash = "register")}
+                className="px-5 py-2.5 rounded-full bg-gold text-navy font-semibold text-sm hover:bg-[#cf9a45] transition-colors"
+              >
+                Criar conta gratuita
+              </button>
+              <button
+                onClick={() => (window.location.hash = "login")}
+                className="px-5 py-2.5 rounded-full border border-white/40 text-white font-medium text-sm hover:bg-white/10 transition-colors"
+              >
+                Entrar na minha conta
+              </button>
+            </div>
+          </section>
+        )}
 
         {isLoggedIn && (
           <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">

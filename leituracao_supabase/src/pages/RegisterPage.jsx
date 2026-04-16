@@ -2,6 +2,8 @@ import { useState } from "react";
 import { registerUser } from "../services/AuthService";
 
 export default function RegisterPage() {
+  const [name, setName] = useState("");
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -21,8 +23,8 @@ export default function RegisterPage() {
 
     try {
       const { error: registerError } = await registerUser({
-        name: email.split("@")[0],
-        username: email.split("@")[0],
+        name,
+        username,
         email,
         password,
       });
@@ -54,6 +56,33 @@ export default function RegisterPage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-navy mb-1">
+                Nome Completo
+              </label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-navy mb-1">
+                Nome de Usuário
+              </label>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value.toLowerCase())}
+                className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue"
+                placeholder="sem espaços"
+                required
+              />
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-navy mb-1">
                 Email
