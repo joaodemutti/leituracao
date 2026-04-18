@@ -1,343 +1,444 @@
-/**
- * services/ReadingService.js
- *
- * Rastreamento de progresso de leitura e gamificação
- *
- * Responsabilidades:
- * 1. Rastrear progresso de leitura (página atual)
- * 2. Atualizar estatísticas do usuário
- * 3. Calcular XP, níveis e badges
- * 4. Fornecer dados para análise
- */
-
 import { supabase } from "../lib/supabase.js";
+import { getBookById } from "./CatalogService.js";
 
-/**
- * Inicia a leitura de um livro
- * @param {string} userId - ID do usuário
- * @param {string} bookId - ID do livro
- * @param {number} totalPages - Total de páginas do livro
- * @returns {Promise<{ data?: object, error?: string }>}
- */
-export async function startReading(userId, bookId, totalPages) {
-  const { data, error } = await supabase
-    .from("reading_progress")
-    .insert({
-      user_id: userId,
-      book_id: bookId,
-      total_pages: totalPages,
-      status: "reading",
-    })
-    .select()
-    .single();
-
-  if (error) {
-    if (error.message.includes("duplicate key")) {
-      return { error: "Você já começou a ler este livro." };
-    }
-    return { error: error.message };
-  }
-
-  return { data };
+function calculateLevel(xpPoints) {
+  return Math.floor(xpPoints / 1000) + 1;
 }
 
-/**
- * Atualiza progresso de leitura
- * Chamado quando o usuário salva progresso (página atual + tempo gasto)
- *
- * @param {string} userId - ID do usuário
- * @param {string} bookId - ID do livro
- * @param {number} currentPage - Página atual
- * @param {number} minutesSpent - Minutos gastos na leitura (opcional)
- * @returns {Promise<{ data?: object, error?: string }>}
- */
-export async function updateReadingProgress(
-  userId,
-  bookId,
-  currentPage,
-  minutesSpent = 0,
-) {
-  // Busca progresso atual do livro
-  const { data: progressData, error: fetchError } = await supabase
-    .from("reading_progress")
-    .select("id, total_pages, current_page, status")
-    .eq("user_id", userId)
-    .eq("book_id", bookId)
-    .single();
+function calculateBadges(currentBadges, booksRead, xpPoints) {
+  const badges = new Set(currentBadges || []);
 
-  if (fetchError) {
-    return { error: "Livro não encontrado. Inicie a leitura primeiro." };
-  }
-
-  const { id: progressId, total_pages: totalPages } = progressData;
-  const completionPercentage = Math.round((currentPage / totalPages) * 100);
-  const isFinished = currentPage >= totalPages;
-
-  // Atualiza progresso principal
-  const { error: updateError } = await supabase
-    .from("reading_progress")
-    .update({
-      current_page: currentPage,
-      completion_percentage: completionPercentage,
-      last_read_at: new Date().toISOString(),
-      status: isFinished ? "finished" : "reading",
-      finished_at: isFinished ? new Date().toISOString() : null,
-    })
-    .eq("id", progressId);
-
-  if (updateError) {
-    return { error: updateError.message };
-  }
-
-  // Registra leitura do dia
-  if (minutesSpent > 0) {
-    await supabase.from("daily_reading").upsert(
-      {
-        user_id: userId,
-        book_id: bookId,
-        minutes_spent: minutesSpent,
-        pages_read: currentPage,
-      },
-      {
-        onConflict: "user_id,book_id,read_date",
-      },
-    );
-  }
-
-  // Se terminou o livro, atualiza estatísticas e XP
-  if (isFinished && progressData.status !== "finished") {
-    await _updateUserStatsOnCompletion(userId, totalPages);
-  }
-
-  return { data: { completionPercentage, isFinished } };
-}
-
-/**
- * Atualiza estatísticas e XP ao terminar um livro
- * (Função interna)
- */
-async function _updateUserStatsOnCompletion(userId, pagesRead) {
-  const { data: stats, error: fetchError } = await supabase
-    .from("user_stats")
-    .select("*")
-    .eq("id", userId)
-    .single();
-
-  // Se não existe, cria
-  if (fetchError) {
-    await supabase.from("user_stats").insert({
-      id: userId,
-      total_books_read: 1,
-      total_pages_read: pagesRead,
-      xp_points: pagesRead * 10,
-      level: 1,
-    });
-    return;
-  }
-
-  // Atualiza
-  const newBooksRead = stats.total_books_read + 1;
-  const newPagesRead = stats.total_pages_read + pagesRead;
-  const newXP = stats.xp_points + pagesRead * 10; // 10 XP por página
-  const newLevel = Math.floor(newXP / 1000) + 1; // Level a cada 1000 XP
-
-  // Calcula novos badges
-  const newBadges = _calculateNewBadges(
-    stats.badges || [],
-    newBooksRead,
-    newXP,
-  );
-
-  await supabase
-    .from("user_stats")
-    .update({
-      total_books_read: newBooksRead,
-      total_pages_read: newPagesRead,
-      xp_points: newXP,
-      level: newLevel,
-      badges: newBadges,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", userId);
-}
-
-/**
- * Calcula novos badges baseado em conquistas
- * (Função interna)
- */
-function _calculateNewBadges(currentBadges, booksRead, xp) {
-  const badges = new Set(currentBadges);
-
-  if (booksRead === 1) badges.add("first_book");
-  if (booksRead === 5) badges.add("five_books");
-  if (booksRead === 10) badges.add("ten_books");
-  if (booksRead === 25) badges.add("bookworm");
-  if (xp >= 5000) badges.add("xp_master");
-  if (xp >= 10000) badges.add("legend");
+  if (booksRead >= 1) badges.add("first_book");
+  if (booksRead >= 5) badges.add("five_books");
+  if (booksRead >= 10) badges.add("ten_books");
+  if (booksRead >= 25) badges.add("bookworm");
+  if (xpPoints >= 5000) badges.add("xp_master");
+  if (xpPoints >= 10000) badges.add("legend");
 
   return Array.from(badges);
 }
 
-/**
- * Retorna estatísticas completas do usuário
- * @param {string} userId - ID do usuário
- * @returns {Promise<{ data?: object, error?: string }>}
- */
-export async function getUserStats(userId) {
+async function ensureUserStats(userId) {
   const { data, error } = await supabase
-    .from("user_stats")
-    .select("*")
-    .eq("id", userId)
-    .single();
-
-  if (error) {
-    // Se não existe, retorna valores padrão
-    if (error.code === "PGRST116") {
-      return {
-        data: {
-          id: userId,
-          total_books_read: 0,
-          total_pages_read: 0,
-          total_reading_hours: 0,
-          current_streak: 0,
-          best_streak: 0,
-          badges: [],
-          xp_points: 0,
-          level: 1,
-        },
-      };
-    }
-    return { error: error.message };
-  }
-
-  return { data };
-}
-
-/**
- * Retorna progresso de leitura de todos os livros do usuário
- * @param {string} userId - ID do usuário
- * @param {number} limit - Número máximo de resultados (padrão: 50)
- * @returns {Promise<{ data?: array, error?: string }>}
- */
-export async function getUserReadingProgress(userId, limit = 50) {
-  const { data, error } = await supabase
-    .from("reading_progress")
+    .from("estatisticas_usuario")
     .select("*")
     .eq("user_id", userId)
-    .order("last_read_at", { ascending: false })
-    .limit(limit);
+    .maybeSingle();
 
-  if (error) {
-    return { error: error.message };
-  }
+  if (!error && data) return data;
 
-  return { data };
+  const defaults = {
+    user_id: userId,
+    xp_points: 0,
+    level: 1,
+    total_books_read: 0,
+    total_pages_read: 0,
+    total_reading_minutes: 0,
+    current_streak: 0,
+    best_streak: 0,
+    badges: [],
+    last_activity_date: null,
+  };
+
+  const { data: inserted, error: insertError } = await supabase
+    .from("estatisticas_usuario")
+    .insert(defaults)
+    .select()
+    .single();
+
+  if (insertError) throw insertError;
+  return inserted;
 }
 
-/**
- * Retorna progresso específico de um livro
- * @param {string} userId - ID do usuário
- * @param {string} bookId - ID do livro
- * @returns {Promise<{ data?: object, error?: string }>}
- */
-export async function getBookProgress(userId, bookId) {
+function normalizeDate(value) {
+  return new Date(`${value}T00:00:00`);
+}
+
+async function calculateCurrentStreak(userId) {
   const { data, error } = await supabase
-    .from("reading_progress")
+    .from("sessoes_leitura")
+    .select("session_date")
+    .eq("user_id", userId)
+    .order("session_date", { ascending: false });
+
+  if (error) throw error;
+  const uniqueDates = [...new Set((data || []).map((item) => item.session_date))];
+  if (!uniqueDates.length) return 0;
+
+  let streak = 1;
+  let cursor = normalizeDate(uniqueDates[0]);
+
+  for (let index = 1; index < uniqueDates.length; index += 1) {
+    const nextDate = normalizeDate(uniqueDates[index]);
+    const diffDays = Math.round((cursor - nextDate) / 86400000);
+    if (diffDays === 1) {
+      streak += 1;
+      cursor = nextDate;
+      continue;
+    }
+    if (diffDays > 1) break;
+  }
+
+  return streak;
+}
+
+async function applySessionGamification(userId, bookId, pagesDelta, minutesSpent) {
+  const safePagesDelta = Math.max(0, Number(pagesDelta) || 0);
+  const safeMinutesSpent = Math.max(0, Number(minutesSpent) || 0);
+
+  if (safePagesDelta <= 0 && safeMinutesSpent <= 0) {
+    return ensureUserStats(userId);
+  }
+
+  const xpDelta = safePagesDelta * 10;
+
+  const { error: eventError } = await supabase.from("eventos_gamificacao").insert({
+    user_id: userId,
+    book_id: bookId,
+    event_type: "reading_session",
+    xp_delta: xpDelta,
+    metadata: {
+      pages_delta: safePagesDelta,
+      minutes_spent: safeMinutesSpent,
+    },
+  });
+
+  if (eventError) throw eventError;
+
+  const currentStats = await ensureUserStats(userId);
+  const currentStreak = await calculateCurrentStreak(userId);
+  const nextXpPoints = currentStats.xp_points + xpDelta;
+
+  const updatePayload = {
+    xp_points: nextXpPoints,
+    level: calculateLevel(nextXpPoints),
+    total_pages_read: currentStats.total_pages_read + safePagesDelta,
+    total_reading_minutes: currentStats.total_reading_minutes + safeMinutesSpent,
+    current_streak: currentStreak,
+    best_streak: Math.max(currentStats.best_streak, currentStreak),
+    last_activity_date: new Date().toISOString().split("T")[0],
+    badges: calculateBadges(
+      currentStats.badges,
+      currentStats.total_books_read,
+      nextXpPoints,
+    ),
+  };
+
+  const { data, error } = await supabase
+    .from("estatisticas_usuario")
+    .update(updatePayload)
+    .eq("user_id", userId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+async function awardBookCompletion(userId, bookId) {
+  const { data: existingEvent } = await supabase
+    .from("eventos_gamificacao")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("book_id", bookId)
+    .eq("event_type", "book_completed")
+    .maybeSingle();
+
+  if (existingEvent) {
+    return ensureUserStats(userId);
+  }
+
+  const { error: eventError } = await supabase.from("eventos_gamificacao").insert({
+    user_id: userId,
+    book_id: bookId,
+    event_type: "book_completed",
+    xp_delta: 0,
+    metadata: {},
+  });
+
+  if (eventError) throw eventError;
+
+  const currentStats = await ensureUserStats(userId);
+  const totalBooksRead = currentStats.total_books_read + 1;
+  const badges = calculateBadges(currentStats.badges, totalBooksRead, currentStats.xp_points);
+
+  const { data, error } = await supabase
+    .from("estatisticas_usuario")
+    .update({
+      total_books_read: totalBooksRead,
+      badges,
+    })
+    .eq("user_id", userId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+async function getStoredEstimatedPages(bookId) {
+  const bookResult = await getBookById(bookId);
+  if (bookResult.error) return null;
+  return bookResult.data.estimatedPages || null;
+}
+
+export async function startReading(userId, bookId, initialLocation = null, estimatedPages = null) {
+  const { data: existing, error: existingError } = await supabase
+    .from("progresso_leitura")
     .select("*")
     .eq("user_id", userId)
     .eq("book_id", bookId)
-    .single();
+    .maybeSingle();
 
-  if (error) {
-    if (error.code === "PGRST116") {
-      return { error: "Você ainda não começou a ler este livro." };
-    }
-    return { error: error.message };
+  if (existingError) {
+    return { error: existingError.message };
   }
 
+  if (existing) {
+    return { data: existing };
+  }
+
+  const fallbackEstimatedPages = estimatedPages ?? (await getStoredEstimatedPages(bookId));
+
+  const { data, error } = await supabase
+    .from("progresso_leitura")
+    .insert({
+      user_id: userId,
+      book_id: bookId,
+      status: "reading",
+      epub_location: initialLocation,
+      estimated_pages: fallbackEstimatedPages,
+    })
+    .select()
+    .single();
+
+  if (error) return { error: error.message };
   return { data };
 }
 
-/**
- * Retorna dados de leitura para análise no gráfico
- * Agrupa páginas e minutos por data nos últimos N dias
- *
- * @param {string} userId - ID do usuário
- * @param {number} daysBack - Quantos dias para trás analisar (padrão: 30)
- * @returns {Promise<{ data?: object, error?: string }>}
- */
+export async function saveReadingPosition(
+  userId,
+  bookId,
+  location,
+  currentPageApprox = null,
+  estimatedPages = null,
+  minutesSpent = 0,
+  pagesDelta = 0,
+) {
+  const startResult = await startReading(userId, bookId, location, estimatedPages);
+  if (startResult.error) return startResult;
+
+  const previousProgress = startResult.data;
+  const effectiveEstimatedPages =
+    estimatedPages ?? previousProgress.estimated_pages ?? (await getStoredEstimatedPages(bookId));
+  const effectiveCurrentPage = currentPageApprox ?? previousProgress.current_page;
+  const completionPercentage =
+    effectiveCurrentPage && effectiveEstimatedPages
+      ? Math.min(100, Math.round((effectiveCurrentPage / effectiveEstimatedPages) * 100))
+      : previousProgress.completion_percentage;
+  const isFinished = completionPercentage >= 100;
+
+  const updatePayload = {
+    epub_location: location,
+    current_page: effectiveCurrentPage,
+    estimated_pages: effectiveEstimatedPages,
+    completion_percentage: completionPercentage || 0,
+    last_opened_at: new Date().toISOString(),
+    last_read_at: new Date().toISOString(),
+    status: isFinished ? "finished" : "reading",
+    finished_at: isFinished ? new Date().toISOString() : previousProgress.finished_at,
+  };
+
+  const { data: updatedProgress, error: progressError } = await supabase
+    .from("progresso_leitura")
+    .update(updatePayload)
+    .eq("id", previousProgress.id)
+    .select()
+    .single();
+
+  if (progressError) return { error: progressError.message };
+
+  const { error: sessionError } = await supabase.from("sessoes_leitura").insert({
+    user_id: userId,
+    book_id: bookId,
+    start_location: previousProgress.epub_location,
+    end_location: location,
+    start_page: previousProgress.current_page,
+    end_page: effectiveCurrentPage,
+    pages_delta: Math.max(0, Number(pagesDelta) || 0),
+    minutes_spent: Math.max(0, Number(minutesSpent) || 0),
+  });
+
+  if (sessionError) return { error: sessionError.message };
+
+  try {
+    await applySessionGamification(userId, bookId, pagesDelta, minutesSpent);
+    if (isFinished && previousProgress.status !== "finished") {
+      await awardBookCompletion(userId, bookId);
+    }
+  } catch (error) {
+    return { error: error.message };
+  }
+
+  return {
+    data: {
+      ...updatedProgress,
+      isFinished,
+    },
+  };
+}
+
+export async function finishReading(
+  userId,
+  bookId,
+  location,
+  currentPageApprox = null,
+  estimatedPages = null,
+  minutesSpent = 0,
+) {
+  const currentProgressResult = await startReading(userId, bookId, location, estimatedPages);
+  if (currentProgressResult.error) return currentProgressResult;
+
+  const previousProgress = currentProgressResult.data;
+  const pagesDelta =
+    currentPageApprox && previousProgress.current_page
+      ? Math.max(0, currentPageApprox - previousProgress.current_page)
+      : 0;
+
+  return saveReadingPosition(
+    userId,
+    bookId,
+    location,
+    currentPageApprox,
+    estimatedPages,
+    minutesSpent,
+    pagesDelta,
+  );
+}
+
+export async function getUserStats(userId) {
+  try {
+    const stats = await ensureUserStats(userId);
+    return { data: stats };
+  } catch (error) {
+    return { error: error.message };
+  }
+}
+
+export async function getUserReadingProgress(userId, limit = 50) {
+  const { data, error } = await supabase
+    .from("progresso_leitura")
+    .select(`
+      *,
+      livros (
+        title,
+        author,
+        cover_url,
+        cover_emoji,
+        external_url,
+        pdf_url,
+        epub_url
+      )
+    `)
+    .eq("user_id", userId)
+    .order("last_opened_at", { ascending: false })
+    .limit(limit);
+
+  if (error) return { error: error.message };
+
+  return {
+    data: (data || []).map((item) => ({
+      ...item,
+      book: item.livros
+        ? {
+            title: item.livros.title,
+            author: item.livros.author,
+            coverUrl: item.livros.cover_url,
+            emoji: item.livros.cover_emoji,
+            url: item.livros.external_url,
+            pdfUrl: item.livros.pdf_url,
+            epubUrl: item.livros.epub_url,
+          }
+        : null,
+    })),
+  };
+}
+
+export async function getCurrentReading(userId) {
+  const progressResult = await getUserReadingProgress(userId, 1);
+  if (progressResult.error) return progressResult;
+
+  const activeBook = progressResult.data.find((item) => item.status === "reading");
+  return { data: activeBook || null };
+}
+
+export async function getBookProgress(userId, bookId) {
+  const { data, error } = await supabase
+    .from("progresso_leitura")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("book_id", bookId)
+    .maybeSingle();
+
+  if (error) return { error: error.message };
+  if (!data) return { error: "Voce ainda nao comecou a ler este livro." };
+  return { data };
+}
+
 export async function getReadingAnalytics(userId, daysBack = 30) {
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - daysBack);
   const startDateStr = startDate.toISOString().split("T")[0];
 
   const { data, error } = await supabase
-    .from("daily_reading")
-    .select("read_date, pages_read, minutes_spent")
+    .from("sessoes_leitura")
+    .select("session_date, pages_delta, minutes_spent")
     .eq("user_id", userId)
-    .gte("read_date", startDateStr)
-    .order("read_date", { ascending: true });
+    .gte("session_date", startDateStr)
+    .order("session_date", { ascending: true });
 
-  if (error) {
-    return { error: error.message };
-  }
+  if (error) return { error: error.message };
 
-  // Agrupa por data
   const aggregated = {};
-  data.forEach((record) => {
-    if (!aggregated[record.read_date]) {
-      aggregated[record.read_date] = { pages: 0, minutes: 0, books: 0 };
+  for (const record of data || []) {
+    if (!aggregated[record.session_date]) {
+      aggregated[record.session_date] = { pages: 0, minutes: 0, sessions: 0 };
     }
-    aggregated[record.read_date].pages += record.pages_read || 0;
-    aggregated[record.read_date].minutes += record.minutes_spent || 0;
-    aggregated[record.read_date].books += 1;
-  });
+    aggregated[record.session_date].pages += record.pages_delta || 0;
+    aggregated[record.session_date].minutes += record.minutes_spent || 0;
+    aggregated[record.session_date].sessions += 1;
+  }
 
   return { data: aggregated };
 }
 
-/**
- * Retorna ranking de usuários (para leaderboard)
- * @param {number} limit - Quantidade de usuários (padrão: 10)
- * @returns {Promise<{ data?: array, error?: string }>}
- */
-export async function getLeaderboard(limit = 10) {
+export async function getLeaderboard(limit = 10, scope = "all_time") {
+  const tableName = scope === "weekly" ? "ranking_semanal" : "ranking_geral";
   const { data, error } = await supabase
-    .from("user_stats")
-    .select("id, level, xp_points, total_books_read")
-    .order("xp_points", { ascending: false })
+    .from(tableName)
+    .select("*")
+    .order("rank", { ascending: true })
     .limit(limit);
 
-  if (error) {
-    return { error: error.message };
-  }
-
+  if (error) return { error: error.message };
   return { data };
 }
 
-/**
- * Abandona a leitura de um livro
- * @param {string} userId - ID do usuário
- * @param {string} bookId - ID do livro
- * @returns {Promise<{ error?: string }>}
- */
 export async function abandonReading(userId, bookId) {
   const { error } = await supabase
-    .from("reading_progress")
-    .update({ status: "abandoned" })
+    .from("progresso_leitura")
+    .update({
+      status: "abandoned",
+      last_opened_at: new Date().toISOString(),
+      last_read_at: new Date().toISOString(),
+    })
     .eq("user_id", userId)
     .eq("book_id", bookId);
 
-  if (error) {
-    return { error: error.message };
-  }
-
+  if (error) return { error: error.message };
   return { data: { success: true } };
 }
 
-/**
- * Retorna tradução de badges para português
- */
 export function getBadgeLabel(badgeId) {
   const badges = {
     first_book: "Primeiro livro",
@@ -347,5 +448,10 @@ export function getBadgeLabel(badgeId) {
     xp_master: "Mestre de XP",
     legend: "Lenda",
   };
+
   return badges[badgeId] || badgeId;
 }
+
+
+
+

@@ -1,25 +1,24 @@
-import { useEffect, useState } from "react";
+import { Suspense, lazy, useEffect, useState } from "react";
 import { initAuth, isLoggedIn } from "./services/AuthService";
 import Navbar from "./components/Navbar";
 import TopBar from "./components/TopBar";
-import HomePage from "./pages/HomePage";
-import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
-import ProfilePage from "./pages/ProfilePage";
-import CategoryPage from "./pages/CategoryPage";
-import AcervoPage from "./pages/AcervoPage";
-import MetasPage from "./pages/MetasPage";
-import RankingPage from "./pages/RankingPage";
 import NotFound from "./pages/NotFound";
 
-// Rotas públicas (não precisa autenticação)
-const PUBLIC_PAGES = ["home", "login", "register"];
+const HomePage = lazy(() => import("./pages/HomePage"));
+const LoginPage = lazy(() => import("./pages/LoginPage"));
+const RegisterPage = lazy(() => import("./pages/RegisterPage"));
+const ProfilePage = lazy(() => import("./pages/ProfilePage"));
+const CategoryPage = lazy(() => import("./pages/CategoryPage"));
+const AcervoPage = lazy(() => import("./pages/AcervoPage"));
+const MetasPage = lazy(() => import("./pages/MetasPage"));
+const RankingPage = lazy(() => import("./pages/RankingPage"));
+const ReaderPage = lazy(() => import("./pages/ReaderPage"));
 
-// Rotas que precisam de autenticação
 const PROTECTED_PAGES = {
   profile: ProfilePage,
   metas: MetasPage,
   ranking: RankingPage,
+  reader: ReaderPage,
 };
 
 const PAGES = {
@@ -30,6 +29,7 @@ const PAGES = {
   login: LoginPage,
   register: RegisterPage,
   profile: ProfilePage,
+  reader: ReaderPage,
   educacao: CategoryPage,
   literatura: CategoryPage,
   ciencia: CategoryPage,
@@ -42,29 +42,28 @@ const PAGES = {
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState("home");
+  const [routeKey, setRouteKey] = useState(window.location.hash || "#home");
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    // Inicializar autenticação
     initAuth().then(() => {
       setIsInitialized(true);
     });
 
-    // Escutar mudanças de hash
     const handleHashChange = () => {
-      const hash =
-        window.location.hash.replace("#", "").split("?")[0] || "home";
+      const currentHash = window.location.hash || "#home";
+      const hash = currentHash.replace("#", "").split("?")[0] || "home";
       setCurrentPage(hash);
+      setRouteKey(currentHash);
       window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
     window.addEventListener("hashchange", handleHashChange);
-    handleHashChange(); // Trigger initial route
+    handleHashChange();
 
     return () => window.removeEventListener("hashchange", handleHashChange);
   }, []);
 
-  // Verificar se a página está protegida e não tem autenticação
   if (currentPage in PROTECTED_PAGES && !isLoggedIn()) {
     window.location.hash = "login";
   }
@@ -84,7 +83,15 @@ export default function App() {
       <TopBar />
       <Navbar currentPage={currentPage} />
       <main id="app-main">
-        <PageComponent category={currentPage} />
+        <Suspense
+          fallback={
+            <div className="min-h-[40vh] flex items-center justify-center text-navy">
+              Carregando pagina...
+            </div>
+          }
+        >
+          <PageComponent key={routeKey} category={currentPage} />
+        </Suspense>
       </main>
     </>
   );

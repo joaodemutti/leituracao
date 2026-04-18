@@ -66,47 +66,59 @@ export async function registerUser({ name, username, email, password }) {
   const { data, error: authError } = await supabase.auth.signUp({
     email: normalizedEmail,
     password,
+    options: {
+      data:
+      {
+        name: name.trim(),
+        username: username.trim(),
+      }
+    }
   });
 
   if (authError) {
-    if (authError.message.includes("already registered")) {
+    const msg = authError.message.toLowerCase();
+
+    if (msg.includes("already registered")) {
       return { error: "Este e-mail já está cadastrado." };
     }
-    if (
-      authError.status === 429 ||
-      authError.message.includes("Too Many Requests")
-    ) {
+
+    if (msg.includes("invalid email")) {
+      return { error: "E-mail inválido." };
+    }
+
+    if (msg.includes("password")) {
+      return { error: "A senha deve ter pelo menos 6 caracteres." };
+    }
+
+    if (authError.status === 429 || msg.includes("too many requests")) {
       return {
         error:
           "Muitas tentativas de cadastro. Aguarde alguns minutos antes de tentar novamente.",
       };
     }
-    return { error: authError.message };
-  }
 
-  const { error: dbError } = await supabase.from("usuarios").insert({
-    id: data.user.id,
-    name: name.trim(),
-    username: username.trim().toLowerCase(),
-    email: normalizedEmail,
-    created_at: new Date().toISOString(),
-  });
+    // === TRIGGER / METADATA ===
+    if (msg.includes("missing name")) {
+      return { error: "Informe seu nome." };
+    }
 
-  if (dbError) {
-    if (dbError.message.includes("username")) {
+    if (msg.includes("missing username")) {
+      return { error: "Informe um nome de usuário." };
+    }
+
+    if (msg.includes("username cannot contain spaces")) {
+      return { error: "O nome de usuário não pode conter espaços." };
+    }
+
+    if (msg.includes("duplicate key") || msg.includes("unique constraint")) {
       return { error: "Este nome de usuário já está em uso." };
     }
-    return { error: "Erro ao salvar perfil. Tente novamente." };
+
+    // fallback
+    return { error: "Erro ao criar conta. Tente novamente." };
   }
 
-  _currentUser = {
-    id: data.user.id,
-    name: name.trim(),
-    username: username.trim().toLowerCase(),
-    email: normalizedEmail,
-  };
-
-  return { user: _currentUser };
+  return {};
 }
 
 /**
@@ -166,3 +178,7 @@ export async function logoutUser() {
 export async function initAuth() {
   await getCurrentUser();
 }
+
+
+
+

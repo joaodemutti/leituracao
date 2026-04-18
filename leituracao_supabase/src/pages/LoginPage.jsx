@@ -6,6 +6,8 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [, queryString = ""] = window.location.hash.split("?");
+  const showConfirmNotice = new URLSearchParams(queryString).get("confirm") === "1";
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -34,6 +36,12 @@ export default function LoginPage() {
             Entrar
           </h1>
           <p className="text-gray-600 mb-6">Acesse sua conta LeiturAção</p>
+
+          {showConfirmNotice && (
+            <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded text-blue-700 text-sm">
+              Conta criada. Verifique seu e-mail para confirmar o cadastro antes de entrar.
+            </div>
+          )}
 
           {error && (
             <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded text-red-700 text-sm">

@@ -32,7 +32,7 @@ export default function RegisterPage() {
         setError(registerError);
         return;
       }
-      window.location.hash = "home";
+      window.location.hash = "login?confirm=1";
     } catch (err) {
       setError(err.message || "Erro ao criar conta");
     } finally {
