@@ -1,21 +1,24 @@
 ﻿import { useEffect, useState } from "react";
+import { isAdminUser, refreshCurrentUser } from "../services/AuthService";
 import { listCategories } from "../services/CatalogService.js";
 
 export default function AcervoPage() {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [canEdit, setCanEdit] = useState(false);
 
   useEffect(() => {
     let mounted = true;
 
-    listCategories().then((result) => {
+    Promise.all([listCategories(), refreshCurrentUser()]).then(([result, user]) => {
       if (!mounted) return;
       if (result.error) {
         setError(result.error);
       } else {
         setCategories(result.data || []);
       }
+      setCanEdit(isAdminUser(user));
       setLoading(false);
     });
 
@@ -47,19 +50,34 @@ export default function AcervoPage() {
         {!loading && !error && (
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-3 max-w-5xl mx-auto">
             {categories.map((cat) => (
-              <button
+              <div
                 key={cat.route}
-                type="button"
-                onClick={() => {
-                  window.location.hash = cat.route;
-                }}
                 className="rounded-xl border border-gray-200 bg-white px-4 py-5 text-left shadow-xs hover:border-gold hover:shadow-sm transition-all"
               >
-                <div className="text-2xl mb-2">{cat.emoji}</div>
-                <p className="text-sm font-semibold text-navy leading-tight">
-                  {cat.label}
-                </p>
-              </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    window.location.hash = cat.route;
+                  }}
+                  className="w-full text-left"
+                >
+                  <div className="text-2xl mb-2">{cat.emoji}</div>
+                  <p className="text-sm font-semibold text-navy leading-tight">
+                    {cat.label}
+                  </p>
+                </button>
+                {canEdit && cat.id && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      window.location.hash = `admin?category=${encodeURIComponent(cat.id)}`;
+                    }}
+                    className="mt-3 w-full rounded border border-blue px-3 py-2 text-sm font-semibold text-blue hover:bg-blue-soft transition-colors"
+                  >
+                    Editar categoria
+                  </button>
+                )}
+              </div>
             ))}
           </div>
         )}

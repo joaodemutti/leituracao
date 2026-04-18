@@ -14,12 +14,21 @@ import { supabase } from "../lib/supabase.js";
 // ─── Sessão em memória ────────────────────────────────────────────
 let _currentUser = null;
 
+function mapSessionProfile(session, perfil) {
+  if (!session || !perfil) return null;
+  return {
+    ...perfil,
+    role: session.user.app_metadata?.role || null,
+  };
+}
+
 /**
  * Retorna o usuário logado (da memória ou da sessão do Supabase).
  * @returns {Promise<object|null>}
  */
-export async function getCurrentUser() {
-  if (_currentUser) return _currentUser;
+export async function getCurrentUser(options = {}) {
+  const { forceRefresh = false } = options;
+  if (_currentUser && !forceRefresh) return _currentUser;
 
   const {
     data: { session },
@@ -32,8 +41,12 @@ export async function getCurrentUser() {
     .eq("id", session.user.id)
     .single();
 
-  _currentUser = perfil ?? null;
+  _currentUser = mapSessionProfile(session, perfil);
   return _currentUser;
+}
+
+export async function refreshCurrentUser() {
+  return getCurrentUser({ forceRefresh: true });
 }
 
 /**
@@ -43,6 +56,10 @@ export async function getCurrentUser() {
  */
 export function isLoggedIn() {
   return Boolean(_currentUser);
+}
+
+export function isAdminUser(user = _currentUser) {
+  return user?.role === "admin";
 }
 
 /**
@@ -63,7 +80,7 @@ export async function registerUser({ name, username, email, password }) {
     return { error: "A senha deve ter pelo menos 6 caracteres." };
   }
 
-  const { data, error: authError } = await supabase.auth.signUp({
+  const { error: authError } = await supabase.auth.signUp({
     email: normalizedEmail,
     password,
     options: {
@@ -157,7 +174,10 @@ export async function loginUser({ email, password }) {
     return { error: "Perfil não encontrado. Entre em contato com o suporte." };
   }
 
-  _currentUser = perfil;
+  _currentUser = {
+    ...perfil,
+    role: data.user.app_metadata?.role || null,
+  };
   return { user: _currentUser };
 }
 
@@ -176,7 +196,7 @@ export async function logoutUser() {
  * @returns {Promise<void>}
  */
 export async function initAuth() {
-  await getCurrentUser();
+  await getCurrentUser({ forceRefresh: true });
 }
 
 

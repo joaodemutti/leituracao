@@ -1,8 +1,10 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { isAdminUser, refreshCurrentUser } from "../services/AuthService";
 import { canOpenInReader } from "../services/CatalogService";
 
 export default function BookCard({ book }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [canEdit, setCanEdit] = useState(false);
 
   const primaryHref = useMemo(
     () => (book.pdfUrl || book.url ? book.pdfUrl || book.url : null),
@@ -13,6 +15,24 @@ export default function BookCard({ book }) {
   const openReader = () => {
     window.location.hash = `reader?book=${book.id}`;
   };
+
+  const openAdminEditor = (event) => {
+    event.stopPropagation();
+    const categoryId = book.categoryId || "";
+    window.location.hash = `admin?category=${encodeURIComponent(categoryId)}&book=${encodeURIComponent(book.id)}`;
+  };
+
+  useEffect(() => {
+    let mounted = true;
+    refreshCurrentUser().then((user) => {
+      if (mounted) {
+        setCanEdit(isAdminUser(user));
+      }
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   return (
     <>
@@ -36,6 +56,14 @@ export default function BookCard({ book }) {
         </div>
 
         <div className="p-3">
+          {canEdit && (
+            <button
+              onClick={openAdminEditor}
+              className="mb-2 w-full py-2 border border-blue text-blue font-semibold rounded text-sm hover:bg-blue-soft transition-colors"
+            >
+              Editar livro
+            </button>
+          )}
           <h3 className="font-semibold text-gray-900 text-sm line-clamp-2 mb-1">
             {book.title}
           </h3>
@@ -111,6 +139,14 @@ export default function BookCard({ book }) {
                   Abrir livro
                 </a>
               ) : null}
+              {canEdit && (
+                <button
+                  onClick={openAdminEditor}
+                  className="flex-1 py-2 border-2 border-blue text-blue font-semibold rounded hover:bg-blue-soft transition-colors"
+                >
+                  Editar
+                </button>
+              )}
               <button
                 onClick={() => setIsOpen(false)}
                 className="flex-1 py-2 border-2 border-gray-300 text-gray-700 font-semibold rounded hover:border-gray-400 transition-colors"

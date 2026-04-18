@@ -1,5 +1,5 @@
 import { Suspense, lazy, useEffect, useState } from "react";
-import { initAuth, isLoggedIn } from "./services/AuthService";
+import { initAuth, isLoggedIn, isAdminUser, refreshCurrentUser } from "./services/AuthService";
 import Navbar from "./components/Navbar";
 import TopBar from "./components/TopBar";
 import NotFound from "./pages/NotFound";
@@ -13,12 +13,14 @@ const AcervoPage = lazy(() => import("./pages/AcervoPage"));
 const MetasPage = lazy(() => import("./pages/MetasPage"));
 const RankingPage = lazy(() => import("./pages/RankingPage"));
 const ReaderPage = lazy(() => import("./pages/ReaderPage"));
+const AdminCatalogPage = lazy(() => import("./pages/AdminCatalogPage"));
 
 const PROTECTED_PAGES = {
   profile: ProfilePage,
   metas: MetasPage,
   ranking: RankingPage,
   reader: ReaderPage,
+  admin: AdminCatalogPage,
 };
 
 const PAGES = {
@@ -30,6 +32,7 @@ const PAGES = {
   register: RegisterPage,
   profile: ProfilePage,
   reader: ReaderPage,
+  admin: AdminCatalogPage,
   educacao: CategoryPage,
   literatura: CategoryPage,
   ciencia: CategoryPage,
@@ -44,17 +47,20 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState("home");
   const [routeKey, setRouteKey] = useState(window.location.hash || "#home");
   const [isInitialized, setIsInitialized] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
     initAuth().then(() => {
+      refreshCurrentUser().then(setCurrentUser);
       setIsInitialized(true);
     });
 
-    const handleHashChange = () => {
+    const handleHashChange = async () => {
       const currentHash = window.location.hash || "#home";
       const hash = currentHash.replace("#", "").split("?")[0] || "home";
       setCurrentPage(hash);
       setRouteKey(currentHash);
+      setCurrentUser(await refreshCurrentUser());
       window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
@@ -66,6 +72,10 @@ export default function App() {
 
   if (currentPage in PROTECTED_PAGES && !isLoggedIn()) {
     window.location.hash = "login";
+  }
+
+  if (currentPage === "admin" && isLoggedIn() && currentUser && !isAdminUser(currentUser)) {
+    window.location.hash = "profile";
   }
 
   if (!isInitialized) {

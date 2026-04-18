@@ -1,5 +1,6 @@
 ﻿import { useEffect, useState } from "react";
 import BookCard from "../components/BookCard";
+import { isAdminUser, refreshCurrentUser } from "../services/AuthService";
 import { getCategoryByRoute, listBooksByCategory } from "../services/CatalogService.js";
 
 export default function CategoryPage({ category }) {
@@ -8,6 +9,20 @@ export default function CategoryPage({ category }) {
   const [selectedFilter, setSelectedFilter] = useState("Todos");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [canEdit, setCanEdit] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    refreshCurrentUser().then((user) => {
+      if (mounted) {
+        setCanEdit(isAdminUser(user));
+      }
+    });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -98,9 +113,21 @@ export default function CategoryPage({ category }) {
         <div className="container">
           <div className="flex items-center gap-4 mb-4">
             <span className="text-4xl">{categoryData?.emoji}</span>
-            <h1 className="text-3xl md:text-4xl font-serif font-bold text-navy">
-              {categoryData?.label}
-            </h1>
+            <div className="flex-1">
+              <h1 className="text-3xl md:text-4xl font-serif font-bold text-navy">
+                {categoryData?.label}
+              </h1>
+            </div>
+            {canEdit && categoryData?.id && (
+              <button
+                onClick={() => {
+                  window.location.hash = `admin?category=${encodeURIComponent(categoryData.id)}`;
+                }}
+                className="px-4 py-2 rounded border border-blue text-blue text-sm font-semibold hover:bg-blue-soft transition-colors"
+              >
+                Editar categoria
+              </button>
+            )}
           </div>
           <p className="text-gray-600 mb-4">{categoryData?.desc}</p>
           <div className="flex flex-wrap gap-4 text-sm">

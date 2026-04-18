@@ -257,6 +257,129 @@ export async function searchBooks(rawQuery) {
   return { data: (data || []).map((row) => mapBook(row)) };
 }
 
+export async function listAdminCategories() {
+  const { data, error } = await supabase
+    .from("categorias")
+    .select("*")
+    .order("sort_order", { ascending: true })
+    .order("label", { ascending: true });
+
+  if (error) return { error: error.message };
+  return { data: data || [] };
+}
+
+export async function listAdminCategoryFilters(categoryId) {
+  const { data, error } = await supabase
+    .from("filtros_categoria")
+    .select("*")
+    .eq("category_id", categoryId)
+    .order("sort_order", { ascending: true })
+    .order("label", { ascending: true });
+
+  if (error) return { error: error.message };
+  return { data: data || [] };
+}
+
+export async function listAdminBooks(categoryId) {
+  const { data, error } = await supabase
+    .from("livros")
+    .select("*")
+    .eq("category_id", categoryId)
+    .order("is_featured", { ascending: false })
+    .order("featured_rank", { ascending: true, nullsFirst: false })
+    .order("title", { ascending: true });
+
+  if (error) return { error: error.message };
+  return { data: data || [] };
+}
+
+export async function createCategory(payload) {
+  const { data, error } = await supabase
+    .from("categorias")
+    .insert(payload)
+    .select()
+    .single();
+
+  if (error) return { error: error.message };
+  return { data };
+}
+
+export async function updateCategory(categoryId, payload) {
+  const { data, error } = await supabase
+    .from("categorias")
+    .update(payload)
+    .eq("id", categoryId)
+    .select()
+    .single();
+
+  if (error) return { error: error.message };
+  return { data };
+}
+
+export async function deleteCategory(categoryId) {
+  const { error } = await supabase.from("categorias").delete().eq("id", categoryId);
+  if (error) return { error: error.message };
+  return {};
+}
+
+export async function createCategoryFilter(payload) {
+  const { data, error } = await supabase
+    .from("filtros_categoria")
+    .insert(payload)
+    .select()
+    .single();
+
+  if (error) return { error: error.message };
+  return { data };
+}
+
+export async function updateCategoryFilter(filterId, payload) {
+  const { data, error } = await supabase
+    .from("filtros_categoria")
+    .update(payload)
+    .eq("id", filterId)
+    .select()
+    .single();
+
+  if (error) return { error: error.message };
+  return { data };
+}
+
+export async function deleteCategoryFilter(filterId) {
+  const { error } = await supabase.from("filtros_categoria").delete().eq("id", filterId);
+  if (error) return { error: error.message };
+  return {};
+}
+
+export async function createBook(payload) {
+  const { data, error } = await supabase
+    .from("livros")
+    .insert(payload)
+    .select()
+    .single();
+
+  if (error) return { error: error.message };
+  return { data };
+}
+
+export async function updateBook(bookId, payload) {
+  const { data, error } = await supabase
+    .from("livros")
+    .update(payload)
+    .eq("id", bookId)
+    .select()
+    .single();
+
+  if (error) return { error: error.message };
+  return { data };
+}
+
+export async function deleteBook(bookId) {
+  const { error } = await supabase.from("livros").delete().eq("id", bookId);
+  if (error) return { error: error.message };
+  return {};
+}
+
 export function resolveEpubUrl(book) {
   const candidates = [book?.epubUrl, book?.url, book?.externalUrl];
   return candidates.find((value) => isEpubAssetUrl(value)) || null;

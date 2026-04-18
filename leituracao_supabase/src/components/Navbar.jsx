@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { isAcervoSection } from "../data/categoriesNav";
-import { getCurrentUser, logoutUser } from "../services/AuthService";
+import { isAdminUser, logoutUser, refreshCurrentUser } from "../services/AuthService";
 
 export default function Navbar({ currentPage }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -8,11 +8,11 @@ export default function Navbar({ currentPage }) {
 
   useEffect(() => {
     // Carregar usuário ao montar
-    getCurrentUser().then(setUser);
+    refreshCurrentUser().then(setUser);
 
     // Escutar mudanças de hash para atualizar usuário
     const handleHashChange = async () => {
-      const currentUser = await getCurrentUser();
+      const currentUser = await refreshCurrentUser();
       setUser(currentUser);
     };
     window.addEventListener("hashchange", handleHashChange);
@@ -25,6 +25,10 @@ export default function Navbar({ currentPage }) {
     { route: "metas", label: "Metas" },
     { route: "ranking", label: "Ranking" },
   ];
+
+  if (isAdminUser(user)) {
+    navLinks.push({ route: "admin", label: "Admin" });
+  }
 
   const handleLogout = async () => {
     await logoutUser();
@@ -188,18 +192,37 @@ export default function Navbar({ currentPage }) {
               );
             })}
             <div className="border-t pt-2 mt-2 space-y-2">
-              <button
-                onClick={() => handleNavigate("login")}
-                className="block w-full text-left px-3 py-2 rounded hover:bg-gray-100 text-sm font-medium"
-              >
-                Entrar
-              </button>
-              <button
-                onClick={() => handleNavigate("register")}
-                className="block w-full text-left px-3 py-2 rounded hover:bg-gray-100 text-sm font-medium"
-              >
-                Cadastrar
-              </button>
+              {user ? (
+                <>
+                  <button
+                    onClick={() => handleNavigate("profile")}
+                    className="block w-full text-left px-3 py-2 rounded hover:bg-gray-100 text-sm font-medium"
+                  >
+                    Perfil
+                  </button>
+                  <button
+                    onClick={handleLogout}
+                    className="block w-full text-left px-3 py-2 rounded hover:bg-gray-100 text-sm font-medium text-red-600"
+                  >
+                    Sair
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() => handleNavigate("login")}
+                    className="block w-full text-left px-3 py-2 rounded hover:bg-gray-100 text-sm font-medium"
+                  >
+                    Entrar
+                  </button>
+                  <button
+                    onClick={() => handleNavigate("register")}
+                    className="block w-full text-left px-3 py-2 rounded hover:bg-gray-100 text-sm font-medium"
+                  >
+                    Cadastrar
+                  </button>
+                </>
+              )}
             </div>
           </nav>
         </div>

@@ -1,5 +1,5 @@
 ﻿import { useEffect, useState } from "react";
-import { getCurrentUser, logoutUser } from "../services/AuthService";
+import { isAdminUser, logoutUser, refreshCurrentUser } from "../services/AuthService";
 import { getUserStats, getBadgeLabel } from "../services/ReadingService";
 
 export default function ProfilePage() {
@@ -10,7 +10,7 @@ export default function ProfilePage() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const currentUser = await getCurrentUser();
+        const currentUser = await refreshCurrentUser();
         setUser(currentUser);
 
         if (currentUser) {
@@ -61,6 +61,19 @@ export default function ProfilePage() {
               </h1>
               <p className="text-gray-600">{user.email}</p>
               <p className="text-sm text-gray-500 mt-2">@{user.username}</p>
+              <p className="text-sm text-gray-500 mt-1">
+                Role: <span className="font-semibold text-navy">{user.role || "user"}</span>
+              </p>
+              {isAdminUser(user) && (
+                <button
+                  onClick={() => {
+                    window.location.hash = "admin";
+                  }}
+                  className="mt-3 px-4 py-2 bg-blue text-white rounded font-semibold hover:bg-blue/90"
+                >
+                  Abrir painel admin
+                </button>
+              )}
             </div>
             <button
               onClick={async () => {

@@ -1,5 +1,5 @@
 ﻿import { useEffect, useState } from "react";
-import { getCurrentUser } from "../services/AuthService";
+import { isAdminUser, refreshCurrentUser } from "../services/AuthService";
 import { getGoalSummary } from "../services/GoalsService";
 import { listCategories, listFeaturedBooks } from "../services/CatalogService.js";
 import {
@@ -19,6 +19,7 @@ export default function HomePage() {
   const [weeklyLeaderboard, setWeeklyLeaderboard] = useState([]);
   const [goalSummary, setGoalSummary] = useState(null);
   const [pagesToday, setPagesToday] = useState(0);
+  const [canEdit, setCanEdit] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -27,13 +28,14 @@ export default function HomePage() {
       const [categoryResult, featuredResult, currentUser] = await Promise.all([
         listCategories(),
         listFeaturedBooks(4),
-        getCurrentUser(),
+        refreshCurrentUser(),
       ]);
 
       if (!mounted) return;
       setCategories(categoryResult.data || []);
       setFeaturedBooks(featuredResult.data || []);
       setUser(currentUser || null);
+      setCanEdit(isAdminUser(currentUser));
 
       if (!currentUser) return;
 
@@ -165,14 +167,28 @@ export default function HomePage() {
           <h2 className="font-serif text-2xl text-navy mb-4">Categorias</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-3">
             {categories.map((cat) => (
-              <button
+              <div
                 key={cat.route}
-                onClick={() => (window.location.hash = cat.route)}
                 className="rounded-lg border border-gray-200 bg-white px-3 py-4 hover:border-gold hover:shadow-sm transition-all text-left"
               >
-                <div className="text-2xl mb-1">{cat.emoji}</div>
-                <p className="text-sm font-semibold text-navy">{cat.label}</p>
-              </button>
+                <button
+                  onClick={() => (window.location.hash = cat.route)}
+                  className="w-full text-left"
+                >
+                  <div className="text-2xl mb-1">{cat.emoji}</div>
+                  <p className="text-sm font-semibold text-navy">{cat.label}</p>
+                </button>
+                {canEdit && cat.id && (
+                  <button
+                    onClick={() => {
+                      window.location.hash = `admin?category=${encodeURIComponent(cat.id)}`;
+                    }}
+                    className="mt-3 w-full rounded border border-blue px-3 py-2 text-sm font-semibold text-blue hover:bg-blue-soft transition-colors"
+                  >
+                    Editar categoria
+                  </button>
+                )}
+              </div>
             ))}
           </div>
         </section>
@@ -209,6 +225,16 @@ export default function HomePage() {
                 >
                   Ler agora
                 </button>
+                {canEdit && (
+                  <button
+                    onClick={() => {
+                      window.location.hash = `admin?category=${encodeURIComponent(book.categoryId || "")}&book=${encodeURIComponent(book.id)}`;
+                    }}
+                    className="mt-3 block text-sm font-semibold text-navy hover:underline"
+                  >
+                    Editar livro
+                  </button>
+                )}
               </article>
             ))}
           </div>
