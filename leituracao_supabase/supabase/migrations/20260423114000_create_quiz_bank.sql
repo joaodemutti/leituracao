@@ -93,101 +93,59 @@ create policy "Public can read quiz options"
 drop policy if exists "Admins can insert quiz sets" on public.quiz_sets;
 create policy "Admins can insert quiz sets"
   on public.quiz_sets for insert
-  with check (
-    exists (
-      select 1 from public.usuarios u
-      where u.id = auth.uid()
-        and u.is_admin = true
-    )
-  );
+  to authenticated
+  with check ((select public.is_admin()));
 
 drop policy if exists "Admins can update quiz sets" on public.quiz_sets;
 create policy "Admins can update quiz sets"
   on public.quiz_sets for update
-  using (
-    exists (
-      select 1 from public.usuarios u
-      where u.id = auth.uid()
-        and u.is_admin = true
-    )
-  );
+  to authenticated
+  using ((select public.is_admin()))
+  with check ((select public.is_admin()));
 
 drop policy if exists "Admins can delete quiz sets" on public.quiz_sets;
 create policy "Admins can delete quiz sets"
   on public.quiz_sets for delete
-  using (
-    exists (
-      select 1 from public.usuarios u
-      where u.id = auth.uid()
-        and u.is_admin = true
-    )
-  );
+  to authenticated
+  using ((select public.is_admin()));
 
 drop policy if exists "Admins can insert quiz questions" on public.quiz_questions;
 create policy "Admins can insert quiz questions"
   on public.quiz_questions for insert
-  with check (
-    exists (
-      select 1 from public.usuarios u
-      where u.id = auth.uid()
-        and u.is_admin = true
-    )
-  );
+  to authenticated
+  with check ((select public.is_admin()));
 
 drop policy if exists "Admins can update quiz questions" on public.quiz_questions;
 create policy "Admins can update quiz questions"
   on public.quiz_questions for update
-  using (
-    exists (
-      select 1 from public.usuarios u
-      where u.id = auth.uid()
-        and u.is_admin = true
-    )
-  );
+  to authenticated
+  using ((select public.is_admin()))
+  with check ((select public.is_admin()));
 
 drop policy if exists "Admins can delete quiz questions" on public.quiz_questions;
 create policy "Admins can delete quiz questions"
   on public.quiz_questions for delete
-  using (
-    exists (
-      select 1 from public.usuarios u
-      where u.id = auth.uid()
-        and u.is_admin = true
-    )
-  );
+  to authenticated
+  using ((select public.is_admin()));
 
 drop policy if exists "Admins can insert quiz options" on public.quiz_options;
 create policy "Admins can insert quiz options"
   on public.quiz_options for insert
-  with check (
-    exists (
-      select 1 from public.usuarios u
-      where u.id = auth.uid()
-        and u.is_admin = true
-    )
-  );
+  to authenticated
+  with check ((select public.is_admin()));
 
 drop policy if exists "Admins can update quiz options" on public.quiz_options;
 create policy "Admins can update quiz options"
   on public.quiz_options for update
-  using (
-    exists (
-      select 1 from public.usuarios u
-      where u.id = auth.uid()
-        and u.is_admin = true
-    )
-  );
+  to authenticated
+  using ((select public.is_admin()))
+  with check ((select public.is_admin()));
 
 drop policy if exists "Admins can delete quiz options" on public.quiz_options;
 create policy "Admins can delete quiz options"
   on public.quiz_options for delete
-  using (
-    exists (
-      select 1 from public.usuarios u
-      where u.id = auth.uid()
-        and u.is_admin = true
-    )
-  );
+  to authenticated
+  using ((select public.is_admin()));
 
 insert into public.quiz_sets (id, slug, title, description, source_book_id, is_active)
 values (
