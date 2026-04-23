@@ -1,34 +1,52 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { isAcervoSection } from "../data/categoriesNav";
 import { isAdminUser, logoutUser, refreshCurrentUser } from "../services/AuthService";
+import { searchBooks } from "../services/SearchService";
 
 export default function Navbar({ currentPage }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [user, setUser] = useState(null);
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState([]);
+  const [searching, setSearching] = useState(false);
 
   useEffect(() => {
-    // Carregar usuário ao montar
     refreshCurrentUser().then(setUser);
 
-    // Escutar mudanças de hash para atualizar usuário
     const handleHashChange = async () => {
       const currentUser = await refreshCurrentUser();
       setUser(currentUser);
+      setMobileMenuOpen(false);
     };
+
     window.addEventListener("hashchange", handleHashChange);
     return () => window.removeEventListener("hashchange", handleHashChange);
   }, []);
 
-  const navLinks = [
-    { route: "home", label: "Início" },
-    { route: "acervo", label: "Acervo" },
-    { route: "metas", label: "Metas" },
-    { route: "ranking", label: "Ranking" },
-  ];
+  useEffect(() => {
+    if (!query.trim()) {
+      setSearching(false);
+      setResults([]);
+      return undefined;
+    }
 
-  if (isAdminUser(user)) {
-    navLinks.push({ route: "admin", label: "Admin" });
-  }
+    let mounted = true;
+    setSearching(true);
+
+    const timer = setTimeout(async () => {
+      const result = await searchBooks(query);
+      if (!mounted) return;
+      setResults(result.data || []);
+      setSearching(false);
+    }, 180);
+
+    return () => {
+      mounted = false;
+      clearTimeout(timer);
+    };
+  }, [query]);
+
+  const navLinks = buildNavLinks(user);
 
   const handleLogout = async () => {
     await logoutUser();
@@ -38,45 +56,53 @@ export default function Navbar({ currentPage }) {
   };
 
   const handleNavigate = (route) => {
+    if (route === "sobre") {
+      window.location.hash = "home";
+      window.requestAnimationFrame(() => {
+        document.getElementById("landing-about")?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      });
+      setMobileMenuOpen(false);
+      return;
+    }
+
     window.location.hash = route;
     setMobileMenuOpen(false);
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-white/97 backdrop-blur border-b border-gray-200 transition-shadow duration-300">
-      <div className="container flex items-center justify-between gap-4 h-15">
-        {/* Logo */}
+    <header className="sticky top-0 z-50 border-b border-[#e8e0d1] bg-white/96 shadow-[0_8px_28px_rgba(11,31,58,0.06)] backdrop-blur">
+      <div className="container flex min-h-[74px] items-center justify-between gap-4">
         <button
           onClick={() => handleNavigate("home")}
-          className="flex items-center gap-2 flex-shrink-0"
-          aria-label="LeiturAção — Ir para o início"
+          className="flex flex-shrink-0 items-center gap-3"
+          aria-label="LeiturAcao - Ir para o inicio"
         >
-          <div className="w-8 h-8 rounded bg-navy flex items-center justify-center text-lg flex-shrink-0">
-            📚
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-navy text-[10px] font-semibold uppercase tracking-[0.12em] text-white shadow-sm">
+            LA
           </div>
-          <div className="font-serif text-lg font-bold text-navy tracking-tight whitespace-nowrap hidden sm:block">
-            Leitur<span className="text-gold">Ação</span>
+          <div className="hidden whitespace-nowrap font-serif text-[1.95rem] font-semibold leading-none text-navy sm:block">
+            Leitur<span className="text-gold">Acao</span>
           </div>
         </button>
 
-        {/* Desktop Nav Links */}
-        <nav
-          className="hidden md:flex gap-1 ml-2"
-          aria-label="Navegação principal"
-        >
+        <nav className="ml-2 hidden items-center gap-1 lg:flex" aria-label="Navegacao principal">
           {navLinks.map((link) => {
             const active =
               link.route === "acervo"
                 ? isAcervoSection(currentPage)
                 : link.route === currentPage;
+
             return (
               <button
                 key={link.route}
                 onClick={() => handleNavigate(link.route)}
-                className={`px-3 py-2 rounded text-sm font-medium transition-all duration-300 whitespace-nowrap ${
+                className={`rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
                   active
-                    ? "bg-blue-soft text-blue font-semibold"
-                    : "text-gray-500 hover:bg-gray-100 hover:text-navy"
+                    ? "bg-blue-soft text-blue shadow-[inset_0_0_0_1px_rgba(26,95,168,0.08)]"
+                    : "text-[#405066] hover:bg-[#f4efe7] hover:text-navy"
                 }`}
                 aria-current={active ? "page" : undefined}
               >
@@ -86,45 +112,74 @@ export default function Navbar({ currentPage }) {
           })}
         </nav>
 
-        {/* Search Bar */}
-        <div className="flex-1 max-w-64 ml-auto relative hidden sm:block">
+        <div className="relative hidden flex-1 max-w-[300px] xl:block">
           <label htmlFor="nav-search" className="sr-only">
             Buscar livros
           </label>
           <input
             id="nav-search"
             type="search"
-            placeholder="Buscar livros…"
-            className="w-full pl-8 pr-3 py-2 rounded bg-gray-100 text-sm placeholder-gray-500 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Buscar livros..."
+            className="w-full rounded-full border border-[#e5dfd4] bg-[#f8f6f1] py-2.5 pl-10 pr-4 text-sm text-navy placeholder:text-[#9aa2ad] focus:border-blue focus:bg-white focus:outline-none"
             aria-label="Buscar livros"
           />
           <svg
-            className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400"
+            className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9aa2ad]"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
-            strokeWidth="2.5"
+            strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
           >
             <circle cx="11" cy="11" r="8" />
             <path d="m21 21-4.35-4.35" />
           </svg>
+
+          {(searching || results.length > 0) && query.trim() && (
+            <div className="absolute right-0 top-[calc(100%+10px)] z-30 w-full overflow-hidden rounded-2xl border border-[#e6dfd1] bg-white shadow-lg">
+              {searching && <p className="px-4 py-3 text-sm text-[#64748b]">Buscando...</p>}
+              {!searching && results.length === 0 && (
+                <p className="px-4 py-3 text-sm text-[#64748b]">Nenhum livro encontrado.</p>
+              )}
+              {!searching &&
+                results.map((book) => (
+                  <button
+                    key={book.id}
+                    onClick={() => {
+                      setQuery("");
+                      setResults([]);
+                      window.location.hash = getSearchTarget(book);
+                    }}
+                    className="flex w-full items-center gap-3 border-b border-[#f0ebdf] px-4 py-3 text-left last:border-b-0 hover:bg-[#faf6ef]"
+                  >
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#eef4ff] text-lg">
+                      {book.emoji || "Livro"}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-navy">{book.title}</p>
+                      <p className="truncate text-xs text-[#64748b]">{book.author}</p>
+                    </div>
+                  </button>
+                ))}
+            </div>
+          )}
         </div>
 
-        {/* Auth Links - Desktop */}
-        <div className="hidden md:flex gap-3 ml-4 items-center">
+        <div className="hidden items-center gap-3 md:flex">
           {user ? (
             <>
               <button
                 onClick={() => handleNavigate("profile")}
-                className="text-sm font-medium text-navy hover:opacity-70 transition-opacity"
+                className="flex h-11 w-11 items-center justify-center rounded-full bg-navy text-sm font-semibold text-white"
               >
-                👤 {user.name || user.username}
+                {getInitials(user.name || user.username)}
               </button>
               <button
                 onClick={handleLogout}
-                className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors"
+                className="rounded-full border border-[#e2dccc] px-4 py-2 text-sm font-medium text-[#526070] transition-colors hover:border-[#c8bea9] hover:text-navy"
               >
                 Sair
               </button>
@@ -133,13 +188,13 @@ export default function Navbar({ currentPage }) {
             <>
               <button
                 onClick={() => handleNavigate("login")}
-                className="text-sm font-medium text-gray-500 hover:text-navy transition-colors"
+                className="rounded-full border border-[#e2dccc] px-5 py-2 text-sm font-medium text-navy transition-colors hover:border-[#c8bea9]"
               >
                 Entrar
               </button>
               <button
                 onClick={() => handleNavigate("register")}
-                className="text-sm font-medium text-gray-500 hover:text-navy transition-colors"
+                className="rounded-full bg-navy px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-navy-light"
               >
                 Cadastrar
               </button>
@@ -147,15 +202,14 @@ export default function Navbar({ currentPage }) {
           )}
         </div>
 
-        {/* Mobile Menu Button */}
         <button
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="md:hidden p-2"
+          onClick={() => setMobileMenuOpen((value) => !value)}
+          className="rounded-xl border border-[#e2dccc] p-2.5 lg:hidden"
           aria-label="Abrir menu"
           aria-expanded={mobileMenuOpen}
         >
           <svg
-            className="w-5 h-5"
+            className="h-5 w-5"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -170,39 +224,50 @@ export default function Navbar({ currentPage }) {
         </button>
       </div>
 
-      {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-gray-200 bg-white">
-          <nav className="container py-4 space-y-2">
-            {navLinks.map((link) => {
-              const active =
-                link.route === "acervo"
-                  ? isAcervoSection(currentPage)
-                  : currentPage === link.route;
-              return (
-                <button
-                  key={link.route}
-                  onClick={() => handleNavigate(link.route)}
-                  className={`block w-full text-left px-3 py-2 rounded text-sm font-medium ${
-                    active ? "bg-blue-soft text-blue" : "hover:bg-gray-100"
-                  }`}
-                >
-                  {link.label}
-                </button>
-              );
-            })}
-            <div className="border-t pt-2 mt-2 space-y-2">
+        <div className="border-t border-[#ece6d9] bg-white lg:hidden">
+          <div className="container py-4">
+            <div className="relative mb-4">
+              <input
+                type="search"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Buscar livros..."
+                className="w-full rounded-2xl border border-[#e2dccc] bg-[#f8f6f1] px-4 py-3 text-sm focus:border-blue focus:bg-white focus:outline-none"
+              />
+            </div>
+            <nav className="space-y-2">
+              {navLinks.map((link) => {
+                const active =
+                  link.route === "acervo"
+                    ? isAcervoSection(currentPage)
+                    : currentPage === link.route;
+
+                return (
+                  <button
+                    key={link.route}
+                    onClick={() => handleNavigate(link.route)}
+                    className={`block w-full rounded-xl px-3 py-2 text-left text-sm font-medium ${
+                      active ? "bg-blue-soft text-blue" : "hover:bg-[#f6f1e7]"
+                    }`}
+                  >
+                    {link.label}
+                  </button>
+                );
+              })}
+            </nav>
+            <div className="mt-4 space-y-2 border-t border-[#ede6d8] pt-4">
               {user ? (
                 <>
                   <button
                     onClick={() => handleNavigate("profile")}
-                    className="block w-full text-left px-3 py-2 rounded hover:bg-gray-100 text-sm font-medium"
+                    className="block w-full rounded-xl px-3 py-2 text-left text-sm font-medium hover:bg-[#f6f1e7]"
                   >
                     Perfil
                   </button>
                   <button
                     onClick={handleLogout}
-                    className="block w-full text-left px-3 py-2 rounded hover:bg-gray-100 text-sm font-medium text-red-600"
+                    className="block w-full rounded-xl px-3 py-2 text-left text-sm font-medium text-red-600 hover:bg-[#fdf2f2]"
                   >
                     Sair
                   </button>
@@ -211,22 +276,64 @@ export default function Navbar({ currentPage }) {
                 <>
                   <button
                     onClick={() => handleNavigate("login")}
-                    className="block w-full text-left px-3 py-2 rounded hover:bg-gray-100 text-sm font-medium"
+                    className="block w-full rounded-xl px-3 py-2 text-left text-sm font-medium hover:bg-[#f6f1e7]"
                   >
                     Entrar
                   </button>
                   <button
                     onClick={() => handleNavigate("register")}
-                    className="block w-full text-left px-3 py-2 rounded hover:bg-gray-100 text-sm font-medium"
+                    className="block w-full rounded-xl bg-navy px-3 py-3 text-left text-sm font-semibold text-white"
                   >
                     Cadastrar
                   </button>
                 </>
               )}
             </div>
-          </nav>
+          </div>
         </div>
       )}
     </header>
   );
+}
+
+function buildNavLinks(user) {
+  const links = [
+    { route: "home", label: "Inicio" },
+    { route: "acervo", label: "Acervo" },
+  ];
+
+  if (user) {
+    links.push(
+      { route: "metas", label: "Metas" },
+      { route: "ranking", label: "Ranking" },
+      { route: "progresso", label: "Progresso" },
+      { route: "sugestoes", label: "Sugestoes" },
+      { route: "quiz", label: "Quiz" },
+    );
+  } else {
+    links.push(
+      { route: "ranking", label: "Ranking" },
+      { route: "metas", label: "Metas" },
+      { route: "sobre", label: "Sobre" },
+    );
+  }
+
+  if (isAdminUser(user)) {
+    links.push({ route: "admin", label: "Admin" });
+  }
+
+  return links;
+}
+
+function getInitials(value) {
+  return (value || "LA")
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
+}
+
+function getSearchTarget(book) {
+  return book.epubUrl || book.pdfUrl ? `reader?book=${book.id}` : "acervo";
 }

@@ -1,161 +1,263 @@
-﻿import { useEffect, useState } from "react";
-import { isAdminUser, refreshCurrentUser } from "../services/AuthService";
+import { useEffect, useState } from "react";
+import { refreshCurrentUser } from "../services/AuthService";
+import { listCategories, listFeaturedBooks } from "../services/CatalogService";
 import { getGoalSummary } from "../services/GoalsService";
-import { listCategories, listFeaturedBooks } from "../services/CatalogService.js";
-import {
-  getCurrentReading,
-  getLeaderboard,
-  getReadingAnalytics,
-  getUserStats,
-  getBadgeLabel,
-} from "../services/ReadingService";
+import { getCurrentReading, getLeaderboard, getUserStats } from "../services/ReadingService";
+import { getSuggestions } from "../services/ExperienceService";
 
 export default function HomePage() {
   const [user, setUser] = useState(null);
   const [categories, setCategories] = useState([]);
   const [featuredBooks, setFeaturedBooks] = useState([]);
+  const [suggestions, setSuggestions] = useState([]);
   const [stats, setStats] = useState(null);
-  const [currentReading, setCurrentReading] = useState(null);
-  const [weeklyLeaderboard, setWeeklyLeaderboard] = useState([]);
   const [goalSummary, setGoalSummary] = useState(null);
-  const [pagesToday, setPagesToday] = useState(0);
-  const [canEdit, setCanEdit] = useState(false);
+  const [currentReading, setCurrentReading] = useState(null);
+  const [leaderboard, setLeaderboard] = useState([]);
 
   useEffect(() => {
     let mounted = true;
 
-    async function loadHome() {
-      const [categoryResult, featuredResult, currentUser] = await Promise.all([
-        listCategories(),
-        listFeaturedBooks(4),
+    async function loadPage() {
+      const [userResult, categoriesResult, featuredResult, leaderboardResult] = await Promise.all([
         refreshCurrentUser(),
+        listCategories(),
+        listFeaturedBooks(5),
+        getLeaderboard(5, "weekly"),
       ]);
 
       if (!mounted) return;
-      setCategories(categoryResult.data || []);
+
+      const currentUser = userResult || null;
+      setUser(currentUser);
+      setCategories(categoriesResult.data || []);
       setFeaturedBooks(featuredResult.data || []);
-      setUser(currentUser || null);
-      setCanEdit(isAdminUser(currentUser));
+      setLeaderboard(leaderboardResult.data || []);
 
       if (!currentUser) return;
 
-      const todayKey = new Date().toISOString().split("T")[0];
-      const [statsResult, progressResult, leaderboardResult, goalsResult, analyticsResult] =
-        await Promise.all([
-          getUserStats(currentUser.id),
-          getCurrentReading(currentUser.id),
-          getLeaderboard(5, "weekly"),
-          getGoalSummary(currentUser.id),
-          getReadingAnalytics(currentUser.id, 1),
-        ]);
+      const [statsResult, goalsResult, currentReadingResult, suggestionsResult] = await Promise.all([
+        getUserStats(currentUser.id),
+        getGoalSummary(currentUser.id),
+        getCurrentReading(currentUser.id),
+        getSuggestions(currentUser.id, 4),
+      ]);
 
       if (!mounted) return;
 
       setStats(statsResult.data || null);
-      setCurrentReading(progressResult.data || null);
-      setWeeklyLeaderboard(leaderboardResult.data || []);
       setGoalSummary(goalsResult.data || null);
-      setPagesToday(analyticsResult.data?.[todayKey]?.pages || 0);
+      setCurrentReading(currentReadingResult.data || null);
+      setSuggestions(suggestionsResult.data?.books || []);
     }
 
-    loadHome();
+    loadPage();
 
     return () => {
       mounted = false;
     };
   }, []);
 
-  const achievementBadges = (stats?.badges || []).slice(0, 4).map((badgeId) => ({
-    title: getBadgeLabel(badgeId),
-    desc: `Conquista desbloqueada: ${badgeId}`,
-  }));
+  if (!user) {
+    return (
+      <div className="page-section">
+        <div className="container space-y-8">
+          <section className="hero-shadow overflow-hidden rounded-[34px] bg-navy text-white">
+            <div className="grid gap-10 px-6 py-12 md:px-10 md:py-16 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
+              <div className="max-w-[640px]">
+                <div className="inline-flex rounded-full border border-white/10 bg-white/8 px-4 py-2 text-sm text-white/80">
+                  Mais de 4.200 livros gratuitos para voce
+                </div>
+                <h1 className="mt-6 max-w-[11ch] text-balance font-serif text-5xl font-semibold leading-[0.95] text-white md:text-7xl">
+                  Bem-vindo a <span className="text-gold">LeiturAcao</span>
+                </h1>
+                <p className="mt-6 max-w-[580px] text-lg text-white/76">
+                  Sua biblioteca digital gratuita para ler, salvar progresso, ganhar pontos e subir de nivel em uma jornada de leitura consistente.
+                </p>
+
+                <div className="mt-10 grid max-w-[560px] grid-cols-2 gap-4 sm:grid-cols-4">
+                  {[
+                    ["4.200+", "Livros"],
+                    ["509", "Autores"],
+                    ["100%", "Gratuito"],
+                    ["12k+", "Leitores"],
+                  ].map(([value, label]) => (
+                    <article key={label} className="rounded-[22px] border border-white/10 bg-white/6 px-4 py-5">
+                      <p className="font-serif text-3xl text-gold">{value}</p>
+                      <p className="mt-1 text-xs uppercase tracking-[0.18em] text-white/60">{label}</p>
+                    </article>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid gap-5">
+                <article className="rounded-[30px] bg-white p-6 text-navy shadow-xl">
+                  <div className="mb-3 inline-flex rounded-full bg-[#fef3d4] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#9c6d1b]">
+                    Recomendado
+                  </div>
+                  <h2 className="font-serif text-3xl font-semibold">Criar conta gratis</h2>
+                  <p className="mt-3 text-sm text-[#5d6979]">
+                    Salve favoritos, acompanhe historico, mantenha sua sequencia e participe do ranking.
+                  </p>
+                  <ul className="mt-5 space-y-2 text-sm text-[#415065]">
+                    <li>Salvar favoritos e historico</li>
+                    <li>Ganhar pontos e subir de nivel</li>
+                    <li>Registrar metas e streak</li>
+                    <li>Participar do ranking semanal</li>
+                  </ul>
+                  <button
+                    onClick={() => {
+                      window.location.hash = "register";
+                    }}
+                    className="mt-6 w-full rounded-full bg-gold px-5 py-3 font-semibold text-navy transition-colors hover:bg-[#d49f47]"
+                  >
+                    Criar conta gratuita
+                  </button>
+                </article>
+
+                <article className="rounded-[30px] bg-white px-6 py-6 text-navy shadow-xl">
+                  <h2 className="font-serif text-3xl font-semibold">Ja tenho conta</h2>
+                  <p className="mt-3 text-sm text-[#5d6979]">
+                    Entre com seu e-mail e senha para continuar sua jornada.
+                  </p>
+                  <button
+                    onClick={() => {
+                      window.location.hash = "login";
+                    }}
+                    className="mt-6 w-full rounded-full bg-navy px-5 py-3 font-semibold text-white transition-colors hover:bg-navy-light"
+                  >
+                    Entrar na minha conta
+                  </button>
+                </article>
+              </div>
+            </div>
+          </section>
+
+          <section id="landing-about" className="grid gap-5 lg:grid-cols-[0.95fr_1.05fr]">
+            <article className="panel-card p-7">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Explore o acervo</p>
+              <h2 className="mt-3 font-serif text-4xl text-navy">Comece lendo sem friccao</h2>
+              <p className="mt-3 text-[#5e6b7c]">
+                O acervo esta organizado por categoria, com materiais gratuitos, classicos e trilhas para estudo, literatura e formacao pessoal.
+              </p>
+              <button
+                onClick={() => {
+                  window.location.hash = "acervo";
+                }}
+                className="mt-6 rounded-full border border-[#d9cfbf] px-5 py-3 text-sm font-semibold text-navy transition-colors hover:bg-[#f6f1e8]"
+              >
+                Navegar pelo acervo
+              </button>
+            </article>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              {categories.slice(0, 4).map((category) => (
+                <button
+                  key={category.id}
+                  onClick={() => {
+                    window.location.hash = category.route;
+                  }}
+                  className="panel-card p-6 text-left transition-transform hover:-translate-y-0.5"
+                >
+                  <div className="text-3xl">{category.emoji}</div>
+                  <h3 className="mt-4 font-serif text-2xl text-navy">{category.label}</h3>
+                  <p className="mt-2 text-sm text-[#5e6b7c]">{category.desc}</p>
+                </button>
+              ))}
+            </div>
+          </section>
+        </div>
+      </div>
+    );
+  }
+
+  const currentRank = leaderboard.find((item) => item.user_id === user.id)?.rank;
 
   return (
-    <main className="min-h-screen bg-cream px-4 py-8 md:py-10">
-      <div className="container space-y-6">
-        {!user && (
-          <section className="bg-gradient-to-r from-navy via-navy-mid to-navy rounded-xl p-6 md:p-8 text-white shadow-lg">
-            <h1 className="text-3xl md:text-4xl font-serif font-bold leading-tight mb-2">
-              Continue sua jornada de leitura
-            </h1>
-            <p className="text-white/80 text-sm md:text-base max-w-2xl">
-              Registre leituras, ganhe XP, acompanhe metas e retome seus EPUBs do ponto salvo.
-            </p>
-            <div className="mt-6 flex flex-wrap gap-3">
+    <div className="page-section">
+      <div className="container space-y-7">
+        <section className="overflow-hidden rounded-[34px] bg-navy text-white hero-shadow">
+          <div className="grid gap-6 px-6 py-8 md:px-10 md:py-10 lg:grid-cols-[1fr_220px] lg:items-center">
+            <div>
+              <p className="text-sm text-white/68">Bom dia, {user.name?.split(" ")[0] || user.username}</p>
+              <h1 className="mt-3 font-serif text-4xl text-white md:text-5xl">Continue sua jornada de leitura</h1>
+              <div className="mt-5 inline-flex rounded-full border border-white/10 bg-white/10 px-4 py-2 text-sm text-gold">
+                {stats?.current_streak || 0} dias seguidos sem perder sua sequencia
+              </div>
+              <div className="mt-6 max-w-[430px]">
+                <div className="h-2 rounded-full bg-white/10">
+                  <div
+                    className="h-full rounded-full bg-gold"
+                    style={{ width: `${Math.min(100, ((stats?.xp_points || 0) % 1000) / 10)}%` }}
+                  />
+                </div>
+                <p className="mt-2 text-sm text-white/65">
+                  {stats?.xp_points || 0} / {(stats?.level || 1) * 1000} XP rumo ao proximo nivel
+                </p>
+              </div>
+            </div>
+
+            <article className="ml-auto flex h-[150px] w-[150px] flex-col items-center justify-center rounded-[28px] border border-white/10 bg-white/6 text-center">
+              <p className="font-serif text-5xl text-gold">{stats?.level || 1}</p>
+              <p className="mt-1 text-base text-gold">Explorador</p>
+              <p className="mt-2 text-xs uppercase tracking-[0.18em] text-white/55">Nivel atual</p>
+            </article>
+          </div>
+        </section>
+
+        <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          {[
+            ["Livros lidos", stats?.total_books_read || 0],
+            ["Pontos XP", stats?.xp_points || 0],
+            ["Dias seguidos", stats?.current_streak || 0],
+            ["Ranking", currentRank ? `${currentRank}o` : "--"],
+            ["Metas ativas", `${goalSummary?.activeCount || 0}/${(goalSummary?.activeCount || 0) + (goalSummary?.completedCount || 0)}`],
+          ].map(([label, value]) => (
+            <article key={label} className="panel-card p-6">
+              <p className="font-serif text-4xl text-navy">{value}</p>
+              <p className="mt-2 text-xs uppercase tracking-[0.18em] text-[#7a8797]">{label}</p>
+            </article>
+          ))}
+        </section>
+
+        {currentReading && (
+          <section className="panel-card p-6">
+            <div className="mb-5 flex items-center justify-between gap-3">
+              <h2 className="font-serif text-4xl text-navy">Continue lendo</h2>
               <button
-                onClick={() => (window.location.hash = "register")}
-                className="px-5 py-2.5 rounded-full bg-gold text-navy font-semibold text-sm hover:bg-[#cf9a45] transition-colors"
+                onClick={() => {
+                  window.location.hash = "registrar-leitura";
+                }}
+                className="text-sm font-semibold text-blue"
               >
-                Criar conta gratuita
-              </button>
-              <button
-                onClick={() => (window.location.hash = "login")}
-                className="px-5 py-2.5 rounded-full border border-white/40 text-white font-medium text-sm hover:bg-white/10 transition-colors"
-              >
-                Entrar na minha conta
+                Registrar leitura
               </button>
             </div>
-          </section>
-        )}
-
-        {user && stats && (
-          <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-            {[
-              ["Livros lidos", stats.total_books_read],
-              ["Pontos XP", stats.xp_points],
-              ["Dias seguidos", stats.current_streak],
-              ["Nivel", stats.level],
-              ["Metas ativas", goalSummary?.activeCount || 0],
-              ["Paginas hoje", pagesToday],
-            ].map(([label, value]) => (
-              <article
-                key={label}
-                className="bg-white rounded-lg border border-gray-100 shadow-xs p-4 min-h-[92px]"
-              >
-                <p className="text-xl font-serif text-navy leading-none mt-1">
-                  {value}
-                </p>
-                <p className="text-xs uppercase tracking-wide text-gray-500 mt-2">
-                  {label}
-                </p>
-              </article>
-            ))}
-          </section>
-        )}
-
-        {user && currentReading && (
-          <section className="bg-white rounded-xl border border-gray-100 p-5 shadow-xs">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="font-serif text-2xl text-navy">Continue lendo</h2>
-              <button
-                onClick={() => (window.location.hash = "acervo")}
-                className="text-sm text-blue font-semibold hover:underline"
-              >
-                Ver acervo
-              </button>
-            </div>
-            <div className="rounded-lg bg-cream-dark p-4 flex flex-col md:flex-row md:items-center gap-3 md:gap-5">
-              <div className="w-10 h-10 rounded bg-white flex items-center justify-center text-xl">
+            <div className="flex flex-col gap-4 rounded-[24px] bg-[#fcfaf5] p-5 md:flex-row md:items-center">
+              <div className="flex h-20 w-20 items-center justify-center rounded-[22px] bg-[#ecf2ff] text-4xl">
                 {currentReading.book?.emoji || "Livro"}
               </div>
-              <div className="flex-1">
-                <p className="font-semibold text-navy">{currentReading.book?.title}</p>
-                <p className="text-sm text-gray-600">
-                  {currentReading.book?.author} · Pag. {currentReading.current_page || 0}
+              <div className="min-w-0 flex-1">
+                <h3 className="text-2xl font-semibold text-navy">{currentReading.book?.title}</h3>
+                <p className="text-sm text-[#667587]">
+                  {currentReading.book?.author} - Pag. {currentReading.current_page || 0}
                   {currentReading.estimated_pages ? ` de ${currentReading.estimated_pages}` : ""}
                 </p>
-                <div className="h-2 bg-white rounded-full overflow-hidden mt-2">
+                <div className="mt-4 h-2.5 rounded-full bg-[#e9e2d5]">
                   <div
-                    className="h-full bg-blue rounded-full"
+                    className="h-full rounded-full bg-navy"
                     style={{ width: `${currentReading.completion_percentage || 0}%` }}
                   />
                 </div>
+                <p className="mt-2 text-xs uppercase tracking-[0.18em] text-[#8893a2]">
+                  {currentReading.completion_percentage || 0}% concluido
+                </p>
               </div>
               <button
                 onClick={() => {
                   window.location.hash = `reader?book=${currentReading.book_id}`;
                 }}
-                className="px-5 py-2 rounded-full bg-navy text-white text-sm font-semibold hover:bg-navy-light transition-colors"
+                className="rounded-full bg-navy px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-navy-light"
               >
                 Continuar
               </button>
@@ -163,137 +265,88 @@ export default function HomePage() {
           </section>
         )}
 
-        <section className="bg-white rounded-xl border border-gray-100 p-5 shadow-xs">
-          <h2 className="font-serif text-2xl text-navy mb-4">Categorias</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-3">
-            {categories.map((cat) => (
-              <div
-                key={cat.route}
-                className="rounded-lg border border-gray-200 bg-white px-3 py-4 hover:border-gold hover:shadow-sm transition-all text-left"
+        <section className="grid gap-6 lg:grid-cols-[1fr_360px]">
+          <article className="panel-card p-6">
+            <div className="mb-6 flex items-center justify-between gap-3">
+              <h2 className="font-serif text-4xl text-navy">Sugestoes para voce</h2>
+              <button
+                onClick={() => {
+                  window.location.hash = "sugestoes";
+                }}
+                className="text-sm font-semibold text-blue"
               >
-                <button
-                  onClick={() => (window.location.hash = cat.route)}
-                  className="w-full text-left"
-                >
-                  <div className="text-2xl mb-1">{cat.emoji}</div>
-                  <p className="text-sm font-semibold text-navy">{cat.label}</p>
-                </button>
-                {canEdit && cat.id && (
-                  <button
-                    onClick={() => {
-                      window.location.hash = `admin?category=${encodeURIComponent(cat.id)}`;
-                    }}
-                    className="mt-3 w-full rounded border border-blue px-3 py-2 text-sm font-semibold text-blue hover:bg-blue-soft transition-colors"
-                  >
-                    Editar categoria
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-        </section>
+                Ver tudo
+              </button>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              {(suggestions.length ? suggestions : featuredBooks).slice(0, 4).map((book) => (
+                <article key={book.id} className="overflow-hidden rounded-[24px] border border-[#e8dfcf] bg-white">
+                  <div className="flex min-h-[144px] items-center justify-center bg-[#eef4ff] px-4 py-6 text-4xl">
+                    {book.emoji || "Livro"}
+                  </div>
+                  <div className="space-y-2 p-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#7e8796]">
+                      {"match" in book ? `${book.match}% match` : "Destaque"}
+                    </p>
+                    <h3 className="text-lg font-semibold text-navy">{book.title}</h3>
+                    <p className="text-sm text-[#6c7a8c]">{book.author}</p>
+                    <p className="min-h-[60px] text-sm text-[#5c6a7b]">
+                      {"reason" in book ? book.reason : book.summary}
+                    </p>
+                    <button
+                      onClick={() => {
+                        window.location.hash = `reader?book=${book.id}`;
+                      }}
+                      className="mt-2 w-full rounded-full bg-navy px-4 py-2.5 text-sm font-semibold text-white"
+                    >
+                      Ler agora
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </article>
 
-        <section className="bg-white rounded-xl border border-gray-100 p-5 shadow-xs">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-serif text-2xl text-navy">Sugestoes para voce</h2>
-            <button
-              onClick={() => (window.location.hash = "acervo")}
-              className="text-sm text-blue font-semibold hover:underline"
-            >
-              Ver mais
-            </button>
-          </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            {featuredBooks.map((book) => (
-              <article
-                key={book.id}
-                className="rounded-lg border border-gray-100 bg-gradient-to-b from-[#f8fbff] to-white p-4"
-              >
-                <div className="flex items-start justify-between">
-                  <span className="text-3xl">{book.emoji || "Livro"}</span>
-                  <span className="text-[10px] font-semibold uppercase bg-navy text-white px-2 py-1 rounded-full">
-                    Destaque
-                  </span>
-                </div>
-                <h3 className="font-semibold text-navy mt-3">{book.title}</h3>
-                <p className="text-sm text-gray-500">{book.author}</p>
-                <button
-                  onClick={() => {
-                    window.location.hash = `reader?book=${book.id}`;
-                  }}
-                  className="mt-3 text-sm font-semibold text-blue hover:underline"
-                >
-                  Ler agora
-                </button>
-                {canEdit && (
-                  <button
-                    onClick={() => {
-                      window.location.hash = `admin?category=${encodeURIComponent(book.categoryId || "")}&book=${encodeURIComponent(book.id)}`;
-                    }}
-                    className="mt-3 block text-sm font-semibold text-navy hover:underline"
-                  >
-                    Editar livro
-                  </button>
-                )}
-              </article>
-            ))}
-          </div>
-        </section>
-
-        {user && stats && (
-          <section className="grid lg:grid-cols-5 gap-4">
-            <article className="lg:col-span-3 bg-white rounded-xl border border-gray-100 p-5 shadow-xs">
-              <h2 className="font-serif text-2xl text-navy">Progresso</h2>
-              <p className="text-sm text-gray-600 mb-4">
-                Voce esta no nivel {stats.level} e tem {stats.xp_points} XP acumulados.
-              </p>
-              <div className="h-3 bg-cream-dark rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gold"
-                  style={{ width: `${Math.min(100, (stats.xp_points % 1000) / 10)}%` }}
-                />
-              </div>
-              <div className="flex items-center justify-between mt-2 text-sm text-gray-600">
-                <span>{stats.xp_points} XP</span>
-                <span>Nivel {stats.level}</span>
-              </div>
-            </article>
-            <article className="lg:col-span-2 bg-white rounded-xl border border-gray-100 p-5 shadow-xs">
-              <h2 className="font-serif text-2xl text-navy mb-3">Ranking semanal</h2>
-              <ol className="space-y-2 text-sm">
-                {weeklyLeaderboard.map((entry) => (
-                  <li
-                    key={`${entry.user_id}-${entry.rank}`}
-                    className="flex items-center justify-between rounded-md bg-cream-dark px-3 py-2 text-navy"
-                  >
-                    <span>
-                      <strong>{entry.rank}º</strong> {entry.display_name}
-                    </span>
-                    <span className="font-semibold text-gold">{entry.xp_points} XP</span>
+          <div className="grid gap-5">
+            <article className="panel-card p-6">
+              <h2 className="font-serif text-3xl text-navy">Ranking semanal</h2>
+              <ol className="mt-5 space-y-3">
+                {leaderboard.slice(0, 5).map((entry) => (
+                  <li key={`${entry.user_id}-${entry.rank}`} className="flex items-center justify-between rounded-[20px] bg-[#fbf8f2] px-4 py-3">
+                    <div>
+                      <p className="font-semibold text-navy">{entry.rank}o {entry.display_name}</p>
+                      <p className="text-xs uppercase tracking-[0.14em] text-[#8090a0]">Nivel {entry.level}</p>
+                    </div>
+                    <p className="font-serif text-2xl text-gold">{entry.xp_points}</p>
                   </li>
                 ))}
               </ol>
             </article>
-          </section>
-        )}
 
-        {user && (
-          <section className="bg-white rounded-xl border border-gray-100 p-5 shadow-xs">
-            <h2 className="font-serif text-2xl text-navy mb-4">Conquistas</h2>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-              {(achievementBadges.length ? achievementBadges : [{ title: "Sem badges ainda", desc: "Conclua leituras para desbloquear conquistas." }]).map((achievement) => (
-                <article
-                  key={achievement.title}
-                  className="rounded-lg border border-gray-200 bg-cream-dark/55 p-4"
-                >
-                  <p className="font-semibold text-navy">{achievement.title}</p>
-                  <p className="text-sm text-gray-600 mt-1">{achievement.desc}</p>
-                </article>
-              ))}
-            </div>
-          </section>
-        )}
+            <article className="panel-card p-6">
+              <h2 className="font-serif text-3xl text-navy">Acessos rapidos</h2>
+              <div className="mt-4 grid gap-3">
+                {[
+                  ["Registrar leitura", "registrar-leitura"],
+                  ["Ver progresso", "progresso"],
+                  ["Responder quiz", "quiz"],
+                  ["Gerenciar metas", "metas"],
+                ].map(([label, route]) => (
+                  <button
+                    key={route}
+                    onClick={() => {
+                      window.location.hash = route;
+                    }}
+                    className="rounded-[20px] border border-[#e8dfcf] bg-[#fcfaf5] px-4 py-4 text-left font-semibold text-navy transition-colors hover:bg-white"
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </article>
+          </div>
+        </section>
       </div>
-    </main>
+    </div>
   );
 }

@@ -7,10 +7,20 @@ export default function BookCard({ book }) {
   const [canEdit, setCanEdit] = useState(false);
 
   const primaryHref = useMemo(
-    () => (book.pdfUrl || book.url ? book.pdfUrl || book.url : null),
-    [book.pdfUrl, book.url],
+    () => (book.pdfUrl || book.url || book.externalUrl ? book.pdfUrl || book.url || book.externalUrl : null),
+    [book.externalUrl, book.pdfUrl, book.url],
   );
   const canUseReader = useMemo(() => canOpenInReader(book), [book]);
+
+  useEffect(() => {
+    let mounted = true;
+    refreshCurrentUser().then((user) => {
+      if (mounted) setCanEdit(isAdminUser(user));
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const openReader = () => {
     window.location.hash = `reader?book=${book.id}`;
@@ -18,141 +28,136 @@ export default function BookCard({ book }) {
 
   const openAdminEditor = (event) => {
     event.stopPropagation();
-    const categoryId = book.categoryId || "";
-    window.location.hash = `admin?category=${encodeURIComponent(categoryId)}&book=${encodeURIComponent(book.id)}`;
+    window.location.hash = `admin?category=${encodeURIComponent(book.categoryId || "")}&book=${encodeURIComponent(book.id)}`;
   };
-
-  useEffect(() => {
-    let mounted = true;
-    refreshCurrentUser().then((user) => {
-      if (mounted) {
-        setCanEdit(isAdminUser(user));
-      }
-    });
-    return () => {
-      mounted = false;
-    };
-  }, []);
 
   return (
     <>
-      <div
+      <article
         onClick={() => setIsOpen(true)}
-        className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer group"
+        className="overflow-hidden rounded-[26px] border border-[#e8dfcf] bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
       >
-        <div className="aspect-video bg-gradient-to-br from-navy to-blue flex items-center justify-center overflow-hidden">
+        <div className="relative flex aspect-[0.9] items-center justify-center overflow-hidden bg-gradient-to-br from-[#f0f5ff] via-[#f7eadc] to-[#f7f4ee]">
           {book.coverUrl ? (
             <img
               src={book.coverUrl}
               alt={book.title}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+              className="h-full w-full object-cover"
             />
           ) : (
-            <div className="text-center p-4">
-              <div className="text-2xl mb-2">{book.emoji || book.coverEmoji || "Livro"}</div>
-              <p className="text-white text-xs font-semibold">{book.title}</p>
+            <div className="text-center">
+              <div className="text-5xl">{book.emoji || "Livro"}</div>
             </div>
+          )}
+          {book.badge && (
+            <span className="absolute left-3 top-3 rounded-full bg-[#153156] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white">
+              {book.badge}
+            </span>
           )}
         </div>
 
-        <div className="p-3">
-          {canEdit && (
-            <button
-              onClick={openAdminEditor}
-              className="mb-2 w-full py-2 border border-blue text-blue font-semibold rounded text-sm hover:bg-blue-soft transition-colors"
-            >
-              Editar livro
-            </button>
-          )}
-          <h3 className="font-semibold text-gray-900 text-sm line-clamp-2 mb-1">
+        <div className="p-4">
+          <h3 className="line-clamp-2 min-h-[56px] text-xl font-semibold leading-tight text-navy">
             {book.title}
           </h3>
-          <p className="text-gray-600 text-xs mb-2">{book.author}</p>
+          <p className="mt-2 text-sm text-[#697789]">{book.author}</p>
+          <p className="mt-3 line-clamp-3 min-h-[60px] text-sm text-[#5d697a]">
+            {book.summary || book.description}
+          </p>
 
-          {book.tags && book.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1 mb-3">
+          {book.tags?.length > 0 && (
+            <div className="mt-4 flex flex-wrap gap-2">
               {book.tags.slice(0, 2).map((tag) => (
-                <span
-                  key={tag}
-                  className="px-2 py-1 bg-blue-soft text-blue text-xs rounded"
-                >
+                <span key={tag} className="rounded-full bg-[#eef4ff] px-3 py-1 text-xs font-medium text-blue">
                   {tag}
                 </span>
               ))}
             </div>
           )}
 
-          <button
-            onClick={(event) => {
-              event.stopPropagation();
-              if (canUseReader) {
-                openReader();
-                return;
-              }
-              setIsOpen(true);
-            }}
-            className="w-full py-2 bg-gold hover:bg-gold-light text-navy font-semibold rounded text-sm transition-colors"
-          >
-            {canUseReader ? "Abrir no leitor" : "Leia agora"}
-          </button>
+          <div className="mt-5 grid gap-2">
+            <button
+              onClick={(event) => {
+                event.stopPropagation();
+                if (canUseReader) {
+                  openReader();
+                  return;
+                }
+                setIsOpen(true);
+              }}
+              className="rounded-full bg-navy px-4 py-3 text-sm font-semibold text-white"
+            >
+              {canUseReader ? "Ler agora" : "Ver detalhes"}
+            </button>
+            {canEdit && (
+              <button
+                onClick={openAdminEditor}
+                className="rounded-full border border-[#d8d0c1] px-4 py-2.5 text-sm font-semibold text-navy"
+              >
+                Editar livro
+              </button>
+            )}
+          </div>
         </div>
-      </div>
+      </article>
 
       {isOpen && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-96 overflow-y-auto p-6">
-            <div className="flex justify-between items-start mb-4">
-              <h2 className="text-2xl font-serif font-bold text-navy">
-                {book.title}
-              </h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0b1f3a]/45 px-4">
+          <div className="max-h-[90vh] w-full max-w-[720px] overflow-y-auto rounded-[32px] bg-white p-6 shadow-xl">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">Livro do acervo</p>
+                <h2 className="mt-2 font-serif text-4xl text-navy">{book.title}</h2>
+                <p className="mt-2 text-sm text-[#6d7989]">{book.author}</p>
+              </div>
               <button
                 onClick={() => setIsOpen(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                X
-              </button>
-            </div>
-
-            <p className="text-gray-600 mb-4">
-              <span className="font-semibold">Autor:</span> {book.author}
-            </p>
-
-            {(book.description || book.summary) && (
-              <p className="text-gray-700 mb-4">{book.description || book.summary}</p>
-            )}
-
-            <div className="flex flex-col sm:flex-row gap-4">
-              {canUseReader ? (
-                <button
-                  onClick={openReader}
-                  className="flex-1 py-2 bg-blue text-white font-semibold rounded text-center hover:bg-blue/90 transition-colors"
-                >
-                  Abrir no leitor
-                </button>
-              ) : primaryHref ? (
-                <a
-                  href={primaryHref}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex-1 py-2 bg-blue text-white font-semibold rounded text-center hover:bg-blue/90 transition-colors"
-                >
-                  Abrir livro
-                </a>
-              ) : null}
-              {canEdit && (
-                <button
-                  onClick={openAdminEditor}
-                  className="flex-1 py-2 border-2 border-blue text-blue font-semibold rounded hover:bg-blue-soft transition-colors"
-                >
-                  Editar
-                </button>
-              )}
-              <button
-                onClick={() => setIsOpen(false)}
-                className="flex-1 py-2 border-2 border-gray-300 text-gray-700 font-semibold rounded hover:border-gray-400 transition-colors"
+                className="rounded-full border border-[#ddd4c5] px-4 py-2 text-sm font-medium text-[#627081]"
               >
                 Fechar
               </button>
+            </div>
+
+            <div className="mt-6 grid gap-6 md:grid-cols-[220px_1fr]">
+              <div className="overflow-hidden rounded-[24px] bg-[#f3f7ff]">
+                {book.coverUrl ? (
+                  <img src={book.coverUrl} alt={book.title} className="aspect-[0.9] h-full w-full object-cover" />
+                ) : (
+                  <div className="flex aspect-[0.9] items-center justify-center text-6xl">{book.emoji || "Livro"}</div>
+                )}
+              </div>
+
+              <div>
+                <p className="text-base leading-7 text-[#516071]">{book.description || book.summary}</p>
+                <div className="mt-6 flex flex-wrap gap-3">
+                  {canUseReader ? (
+                    <button
+                      onClick={openReader}
+                      className="rounded-full bg-navy px-5 py-3 text-sm font-semibold text-white"
+                    >
+                      Abrir no leitor
+                    </button>
+                  ) : primaryHref ? (
+                    <a
+                      href={primaryHref}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="rounded-full bg-navy px-5 py-3 text-sm font-semibold text-white"
+                    >
+                      Abrir livro
+                    </a>
+                  ) : null}
+
+                  {canEdit && (
+                    <button
+                      onClick={openAdminEditor}
+                      className="rounded-full border border-[#d8d0c1] px-5 py-3 text-sm font-semibold text-navy"
+                    >
+                      Editar
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>

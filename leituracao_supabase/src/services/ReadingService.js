@@ -413,7 +413,12 @@ export async function getReadingAnalytics(userId, daysBack = 30) {
 }
 
 export async function getLeaderboard(limit = 10, scope = "all_time") {
-  const tableName = scope === "weekly" ? "ranking_semanal" : "ranking_geral";
+  const tableName =
+    scope === "weekly"
+      ? "ranking_semanal"
+      : scope === "monthly"
+        ? "ranking_mensal"
+        : "ranking_geral";
   const { data, error } = await supabase
     .from(tableName)
     .select("*")

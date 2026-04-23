@@ -181,6 +181,42 @@ export async function loginUser({ email, password }) {
   return { user: _currentUser };
 }
 
+export async function loginWithOAuth(provider) {
+  const redirectTo = `${window.location.origin}${window.location.pathname}#home`;
+
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider,
+    options: {
+      redirectTo,
+    },
+  });
+
+  if (error) {
+    return { error: "Nao foi possivel iniciar o login social." };
+  }
+
+  return {};
+}
+
+export async function requestPasswordReset(email) {
+  const normalizedEmail = email.trim().toLowerCase();
+  if (!normalizedEmail) {
+    return { error: "Informe seu e-mail para recuperar a senha." };
+  }
+
+  const redirectTo = `${window.location.origin}${window.location.pathname}#login`;
+
+  const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
+    redirectTo,
+  });
+
+  if (error) {
+    return { error: "Nao foi possivel enviar o e-mail de recuperacao." };
+  }
+
+  return { data: true };
+}
+
 /**
  * Encerra a sessão do usuário.
  * @returns {Promise<void>}

@@ -1,6 +1,6 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { isAdminUser, logoutUser, refreshCurrentUser } from "../services/AuthService";
-import { getUserStats, getBadgeLabel } from "../services/ReadingService";
+import { getUserStats } from "../services/ReadingService";
 
 export default function ProfilePage() {
   const [user, setUser] = useState(null);
@@ -8,134 +8,95 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const currentUser = await refreshCurrentUser();
-        setUser(currentUser);
+    let mounted = true;
 
-        if (currentUser) {
-          const { data: userStats } = await getUserStats(currentUser.id);
-          setStats(userStats || null);
-        }
-      } catch (error) {
-        console.error("Error loading profile:", error);
-      } finally {
-        setLoading(false);
+    async function loadProfile() {
+      const currentUser = await refreshCurrentUser();
+      if (!mounted) return;
+      setUser(currentUser || null);
+
+      if (currentUser) {
+        const result = await getUserStats(currentUser.id);
+        if (!mounted) return;
+        setStats(result.data || null);
       }
-    };
 
-    loadData();
+      setLoading(false);
+    }
+
+    loadProfile();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   if (loading) {
-    return <div className="p-8 text-center">Carregando perfil...</div>;
+    return <div className="page-section text-center text-[#64748b]">Carregando perfil...</div>;
   }
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-cream flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-navy mb-4">Acesso restrito</h1>
-          <p className="text-gray-600 mb-6">
-            Voce precisa estar autenticado para acessar esta pagina.
-          </p>
-          <button
-            onClick={() => (window.location.hash = "login")}
-            className="px-6 py-2 bg-blue text-white rounded font-semibold hover:bg-blue/90"
-          >
-            Fazer login
-          </button>
+      <div className="page-section">
+        <div className="container flex justify-center">
+          <div className="panel-card max-w-[560px] px-8 py-12 text-center">
+            <h1 className="font-serif text-4xl text-navy">Acesso restrito</h1>
+            <p className="mt-4 text-[#607082]">Voce precisa estar autenticado para acessar esta pagina.</p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-cream py-12 px-4">
-      <div className="container max-w-4xl space-y-6">
-        <div className="bg-white rounded-lg shadow-md p-8">
-          <div className="flex items-start justify-between">
+    <div className="page-section">
+      <div className="container space-y-7">
+        <section className="hero-shadow overflow-hidden rounded-[34px] bg-navy px-6 py-10 text-white md:px-10">
+          <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
             <div>
-              <h1 className="text-3xl font-serif font-bold text-navy mb-2">
-                Perfil
-              </h1>
-              <p className="text-gray-600">{user.email}</p>
-              <p className="text-sm text-gray-500 mt-2">@{user.username}</p>
-              <p className="text-sm text-gray-500 mt-1">
-                Role: <span className="font-semibold text-navy">{user.role || "user"}</span>
-              </p>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Minha conta</p>
+              <h1 className="mt-3 font-serif text-5xl">{user.name || user.username}</h1>
+              <p className="mt-3 text-white/70">{user.email}</p>
+              <p className="mt-1 text-sm text-white/55">@{user.username}</p>
+            </div>
+            <div className="flex gap-3">
               {isAdminUser(user) && (
                 <button
                   onClick={() => {
                     window.location.hash = "admin";
                   }}
-                  className="mt-3 px-4 py-2 bg-blue text-white rounded font-semibold hover:bg-blue/90"
+                  className="rounded-full bg-white px-5 py-3 text-sm font-semibold text-navy"
                 >
-                  Abrir painel admin
+                  Abrir admin
                 </button>
               )}
+              <button
+                onClick={async () => {
+                  await logoutUser();
+                  window.location.hash = "home";
+                }}
+                className="rounded-full border border-white/20 px-5 py-3 text-sm font-semibold text-white"
+              >
+                Sair
+              </button>
             </div>
-            <button
-              onClick={async () => {
-                await logoutUser();
-                window.location.hash = "home";
-              }}
-              className="text-red-600 hover:text-red-700 font-semibold"
-            >
-              Sair
-            </button>
           </div>
-        </div>
+        </section>
 
         {stats && (
-          <>
-            <div className="grid md:grid-cols-4 gap-6">
-              {[
-                ["Livros lidos", stats.total_books_read],
-                ["XP total", stats.xp_points],
-                ["Paginas", stats.total_pages_read],
-                ["Minutos", stats.total_reading_minutes],
-              ].map(([label, value]) => (
-                <div key={label} className="bg-white rounded-lg shadow-md p-6">
-                  <p className="text-gray-600 text-sm mb-1">{label}</p>
-                  <p className="text-3xl font-bold text-navy">{value || 0}</p>
-                </div>
-              ))}
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-6">
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <p className="text-gray-600 text-sm mb-1">Nivel atual</p>
-                <p className="text-3xl font-bold text-gold">{stats.level || 1}</p>
-              </div>
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <p className="text-gray-600 text-sm mb-1">Streak atual</p>
-                <p className="text-3xl font-bold text-navy">{stats.current_streak || 0}</p>
-              </div>
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <p className="text-gray-600 text-sm mb-1">Melhor streak</p>
-                <p className="text-3xl font-bold text-navy">{stats.best_streak || 0}</p>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-2xl font-serif font-bold text-navy mb-4">Badges</h2>
-              {stats.badges?.length ? (
-                <div className="flex flex-wrap gap-3">
-                  {stats.badges.map((badge) => (
-                    <span
-                      key={badge}
-                      className="px-3 py-2 rounded-full bg-blue-soft text-blue text-sm font-semibold"
-                    >
-                      {getBadgeLabel(badge)}
-                    </span>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-gray-500">Ainda sem conquistas desbloqueadas.</p>
-              )}
-            </div>
-          </>
+          <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {[
+              ["Livros lidos", stats.total_books_read || 0],
+              ["XP total", stats.xp_points || 0],
+              ["Paginas lidas", stats.total_pages_read || 0],
+              ["Melhor streak", stats.best_streak || 0],
+            ].map(([label, value]) => (
+              <article key={label} className="panel-card px-5 py-6">
+                <p className="font-serif text-4xl text-navy">{value}</p>
+                <p className="mt-2 text-xs uppercase tracking-[0.18em] text-[#8491a1]">{label}</p>
+              </article>
+            ))}
+          </section>
         )}
       </div>
     </div>

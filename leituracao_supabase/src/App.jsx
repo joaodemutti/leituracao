@@ -3,6 +3,7 @@ import { initAuth, isLoggedIn, isAdminUser, refreshCurrentUser } from "./service
 import Navbar from "./components/Navbar";
 import TopBar from "./components/TopBar";
 import NotFound from "./pages/NotFound";
+import AppFooter from "./components/AppFooter";
 
 const HomePage = lazy(() => import("./pages/HomePage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
@@ -14,12 +15,20 @@ const MetasPage = lazy(() => import("./pages/MetasPage"));
 const RankingPage = lazy(() => import("./pages/RankingPage"));
 const ReaderPage = lazy(() => import("./pages/ReaderPage"));
 const AdminCatalogPage = lazy(() => import("./pages/AdminCatalogPage"));
+const ProgressPage = lazy(() => import("./pages/ProgressPage"));
+const SuggestionsPage = lazy(() => import("./pages/SuggestionsPage"));
+const ReadingLogPage = lazy(() => import("./pages/ReadingLogPage"));
+const QuizPage = lazy(() => import("./pages/QuizPage"));
 
 const PROTECTED_PAGES = {
   profile: ProfilePage,
   metas: MetasPage,
   ranking: RankingPage,
   reader: ReaderPage,
+  progresso: ProgressPage,
+  sugestoes: SuggestionsPage,
+  "registrar-leitura": ReadingLogPage,
+  quiz: QuizPage,
   admin: AdminCatalogPage,
 };
 
@@ -28,6 +37,10 @@ const PAGES = {
   acervo: AcervoPage,
   metas: MetasPage,
   ranking: RankingPage,
+  progresso: ProgressPage,
+  sugestoes: SuggestionsPage,
+  "registrar-leitura": ReadingLogPage,
+  quiz: QuizPage,
   login: LoginPage,
   register: RegisterPage,
   profile: ProfilePage,
@@ -87,12 +100,13 @@ export default function App() {
   }
 
   const PageComponent = PAGES[currentPage] || NotFound;
+  const useAppShell = currentPage !== "reader";
 
   return (
     <>
-      <TopBar />
-      <Navbar currentPage={currentPage} />
-      <main id="app-main">
+      {useAppShell && <TopBar />}
+      {useAppShell && <Navbar currentPage={currentPage} />}
+      <main id="app-main" className={useAppShell ? "app-surface" : ""}>
         <Suspense
           fallback={
             <div className="min-h-[40vh] flex items-center justify-center text-navy">
@@ -103,6 +117,7 @@ export default function App() {
           <PageComponent key={routeKey} category={currentPage} />
         </Suspense>
       </main>
+      {useAppShell && <AppFooter currentPage={currentPage} />}
     </>
   );
 }

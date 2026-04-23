@@ -11,6 +11,23 @@ function isHttpAssetUrl(value) {
   }
 }
 
+function isPlaceholderHost(value) {
+  if (!isHttpAssetUrl(value)) return false;
+
+  try {
+    const parsed = new URL(value);
+    return parsed.hostname === "example.com" || parsed.hostname.endsWith(".example.com");
+  } catch {
+    return false;
+  }
+}
+
+function sanitizeAssetUrl(value) {
+  if (!isHttpAssetUrl(value)) return null;
+  if (isPlaceholderHost(value)) return null;
+  return value;
+}
+
 function isEpubAssetUrl(value) {
   if (!isHttpAssetUrl(value)) return false;
   return new URL(value).pathname.toLowerCase().includes(".epub");
@@ -23,6 +40,11 @@ function isPdfAssetUrl(value) {
 
 function mapBook(row, filterMap = new Map()) {
   const filterLabel = row.filter_id ? filterMap.get(row.filter_id) || null : null;
+  const coverUrl = sanitizeAssetUrl(row.cover_url);
+  const externalUrl = sanitizeAssetUrl(row.external_url);
+  const pdfUrl = sanitizeAssetUrl(row.pdf_url);
+  const epubUrl = sanitizeAssetUrl(row.epub_url);
+
   return {
     id: row.id,
     categoryId: row.category_id,
@@ -30,16 +52,16 @@ function mapBook(row, filterMap = new Map()) {
     author: row.author,
     summary: row.summary,
     description: row.summary,
-    coverUrl: row.cover_url,
-    coverImage: row.cover_url,
+    coverUrl,
+    coverImage: coverUrl,
     coverEmoji: row.cover_emoji,
     emoji: row.cover_emoji,
     badge: row.badge,
     size: row.file_size_label,
-    url: row.external_url,
-    externalUrl: row.external_url,
-    pdfUrl: row.pdf_url,
-    epubUrl: row.epub_url,
+    url: externalUrl,
+    externalUrl,
+    pdfUrl,
+    epubUrl,
     estimatedPages: row.estimated_pages,
     totalPages: row.estimated_pages,
     tags: filterLabel ? [filterLabel] : [],
@@ -352,9 +374,17 @@ export async function deleteCategoryFilter(filterId) {
 }
 
 export async function createBook(payload) {
+  const sanitizedPayload = {
+    ...payload,
+    cover_url: sanitizeAssetUrl(payload.cover_url),
+    external_url: sanitizeAssetUrl(payload.external_url),
+    pdf_url: sanitizeAssetUrl(payload.pdf_url),
+    epub_url: sanitizeAssetUrl(payload.epub_url),
+  };
+
   const { data, error } = await supabase
     .from("livros")
-    .insert(payload)
+    .insert(sanitizedPayload)
     .select()
     .single();
 
@@ -363,9 +393,17 @@ export async function createBook(payload) {
 }
 
 export async function updateBook(bookId, payload) {
+  const sanitizedPayload = {
+    ...payload,
+    cover_url: sanitizeAssetUrl(payload.cover_url),
+    external_url: sanitizeAssetUrl(payload.external_url),
+    pdf_url: sanitizeAssetUrl(payload.pdf_url),
+    epub_url: sanitizeAssetUrl(payload.epub_url),
+  };
+
   const { data, error } = await supabase
     .from("livros")
-    .update(payload)
+    .update(sanitizedPayload)
     .eq("id", bookId)
     .select()
     .single();

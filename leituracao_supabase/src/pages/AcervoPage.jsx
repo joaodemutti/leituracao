@@ -1,24 +1,21 @@
-﻿import { useEffect, useState } from "react";
-import { isAdminUser, refreshCurrentUser } from "../services/AuthService";
-import { listCategories } from "../services/CatalogService.js";
+import { useEffect, useState } from "react";
+import { listCategories } from "../services/CatalogService";
 
 export default function AcervoPage() {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [canEdit, setCanEdit] = useState(false);
 
   useEffect(() => {
     let mounted = true;
 
-    Promise.all([listCategories(), refreshCurrentUser()]).then(([result, user]) => {
+    listCategories().then((result) => {
       if (!mounted) return;
       if (result.error) {
         setError(result.error);
       } else {
         setCategories(result.data || []);
       }
-      setCanEdit(isAdminUser(user));
       setLoading(false);
     });
 
@@ -28,58 +25,44 @@ export default function AcervoPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-cream">
-      <div className="bg-white border-b border-gray-200 py-10 px-4">
-        <div className="container max-w-4xl">
-          <p className="text-xs font-semibold uppercase tracking-widest text-gold mb-2">
-            Acervo
-          </p>
-          <h1 className="font-serif text-3xl md:text-4xl font-bold text-navy">
-            Explore por categoria
+    <div className="page-section">
+      <div className="container space-y-7">
+        <section className="hero-shadow overflow-hidden rounded-[32px] bg-navy px-6 py-10 text-white md:px-10">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Acervo gratuito</p>
+          <h1 className="mt-4 max-w-[12ch] font-serif text-5xl leading-[0.98] md:text-6xl">
+            Explore a biblioteca por categoria
           </h1>
-          <p className="text-gray-600 mt-2 max-w-2xl">
-            Escolha uma categoria para ver os livros disponiveis no acervo gratuito.
+          <p className="mt-4 max-w-[620px] text-base text-white/72">
+            Materiais de educacao, literatura, filosofia, ciencias e outras trilhas de formacao disponiveis para leitura gratuita.
           </p>
-        </div>
-      </div>
+        </section>
 
-      <div className="container py-10 px-4">
-        {loading && <p className="text-center text-gray-500">Carregando categorias...</p>}
+        {loading && <p className="text-center text-[#64748b]">Carregando categorias...</p>}
         {error && <p className="text-center text-red-600">{error}</p>}
 
         {!loading && !error && (
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-3 max-w-5xl mx-auto">
-            {categories.map((cat) => (
-              <div
-                key={cat.route}
-                className="rounded-xl border border-gray-200 bg-white px-4 py-5 text-left shadow-xs hover:border-gold hover:shadow-sm transition-all"
+          <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+            {categories.map((category) => (
+              <button
+                key={category.id}
+                onClick={() => {
+                  window.location.hash = category.route;
+                }}
+                className="panel-card group p-6 text-left transition-all hover:-translate-y-0.5 hover:shadow-md"
               >
-                <button
-                  type="button"
-                  onClick={() => {
-                    window.location.hash = cat.route;
-                  }}
-                  className="w-full text-left"
-                >
-                  <div className="text-2xl mb-2">{cat.emoji}</div>
-                  <p className="text-sm font-semibold text-navy leading-tight">
-                    {cat.label}
-                  </p>
-                </button>
-                {canEdit && cat.id && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      window.location.hash = `admin?category=${encodeURIComponent(cat.id)}`;
-                    }}
-                    className="mt-3 w-full rounded border border-blue px-3 py-2 text-sm font-semibold text-blue hover:bg-blue-soft transition-colors"
-                  >
-                    Editar categoria
-                  </button>
-                )}
-              </div>
+                <div className="flex h-14 w-14 items-center justify-center rounded-[18px] bg-[#f3f7ff] text-3xl">
+                  {category.emoji}
+                </div>
+                <h2 className="mt-5 font-serif text-3xl text-navy">{category.label}</h2>
+                <p className="mt-3 text-sm leading-6 text-[#5e6b7c]">{category.desc}</p>
+                <div className="mt-6 flex gap-4 text-xs uppercase tracking-[0.16em] text-[#8693a2]">
+                  <span>{category.stats.total} titulos</span>
+                  <span>{category.stats.authors} autores</span>
+                </div>
+                <div className="mt-6 text-sm font-semibold text-blue">Abrir categoria</div>
+              </button>
             ))}
-          </div>
+          </section>
         )}
       </div>
     </div>

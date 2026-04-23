@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { getCurrentUser } from "../services/AuthService";
 import { createReadingGoal, getGoalProgress, getGoalSummary } from "../services/GoalsService";
 
@@ -27,7 +27,7 @@ export default function MetasPage() {
     async function loadGoals() {
       const currentUser = await getCurrentUser();
       if (!mounted) return;
-      setUser(currentUser);
+      setUser(currentUser || null);
 
       if (!currentUser) {
         setLoading(false);
@@ -40,9 +40,9 @@ export default function MetasPage() {
       ]);
 
       if (!mounted) return;
-      if (goalsResult.error) setError(goalsResult.error);
       setGoals(goalsResult.data || []);
       setSummary(summaryResult.data || null);
+      setError(goalsResult.error || "");
       setLoading(false);
     }
 
@@ -55,14 +55,17 @@ export default function MetasPage() {
 
   async function reloadGoals() {
     if (!user) return;
+
     const [goalsResult, summaryResult] = await Promise.all([
       getGoalProgress(user.id),
       getGoalSummary(user.id),
     ]);
+
     if (goalsResult.error) {
       setError(goalsResult.error);
       return;
     }
+
     setGoals(goalsResult.data || []);
     setSummary(summaryResult.data || null);
   }
@@ -85,63 +88,55 @@ export default function MetasPage() {
   const activeGoals = goals.filter((goal) => goal.status === "active");
   const completedGoals = goals.filter((goal) => goal.status === "completed");
 
-  if (loading) {
-    return <div className="p-8 text-center">Carregando metas...</div>;
-  }
-
   return (
-    <div className="min-h-screen bg-[#f9f7f2]">
-      <div className="container max-w-3xl py-8 md:py-10 px-4">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-amber-700 mb-2">
-          Minha jornada
-        </p>
-
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
-          <h1 className="font-serif text-3xl md:text-4xl font-bold text-navy">
-            Metas de leitura
-          </h1>
+    <div className="page-section">
+      <div className="container space-y-7">
+        <section className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Minha jornada</p>
+            <h1 className="mt-3 font-serif text-5xl text-navy">Metas de leitura</h1>
+          </div>
           <button
-            type="button"
             onClick={() => setShowForm((value) => !value)}
-            className="shrink-0 rounded-full bg-navy px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-navy-light transition-colors"
+            className="rounded-full bg-navy px-6 py-3 text-sm font-semibold text-white"
           >
-            {showForm ? "Fechar" : "+ Nova meta"}
+            {showForm ? "Fechar formulario" : "+ Nova meta"}
           </button>
-        </div>
+        </section>
 
-        {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
+        {error && <div className="rounded-[20px] border border-[#f2d2d2] bg-[#fff4f4] px-4 py-3 text-sm text-[#a33d3d]">{error}</div>}
 
         {showForm && (
-          <form onSubmit={handleSubmit} className="rounded-xl border border-[#e8e4db] bg-white p-5 shadow-sm mb-8 grid gap-4 md:grid-cols-2">
-            <label className="text-sm text-gray-700">
+          <form onSubmit={handleSubmit} className="panel-card grid gap-4 p-6 md:grid-cols-2">
+            <label className="text-sm font-medium text-navy">
               Titulo
               <input
                 value={form.title}
                 onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))}
-                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
+                className="mt-2 w-full rounded-2xl border border-[#ddd5c8] px-4 py-3 focus:border-blue focus:outline-none"
                 required
               />
             </label>
-            <label className="text-sm text-gray-700">
+            <label className="text-sm font-medium text-navy">
               Tipo
               <select
                 value={form.goalType}
                 onChange={(event) => setForm((current) => ({ ...current, goalType: event.target.value }))}
-                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
+                className="mt-2 w-full rounded-2xl border border-[#ddd5c8] px-4 py-3 focus:border-blue focus:outline-none"
               >
                 <option value="daily">Diaria</option>
                 <option value="weekly">Semanal</option>
                 <option value="monthly">Mensal</option>
                 <option value="annual">Anual</option>
-                <option value="custom">Customizada</option>
+                <option value="custom">Personalizada</option>
               </select>
             </label>
-            <label className="text-sm text-gray-700">
+            <label className="text-sm font-medium text-navy">
               Medida
               <select
                 value={form.metricType}
                 onChange={(event) => setForm((current) => ({ ...current, metricType: event.target.value }))}
-                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
+                className="mt-2 w-full rounded-2xl border border-[#ddd5c8] px-4 py-3 focus:border-blue focus:outline-none"
               >
                 <option value="books">Livros</option>
                 <option value="pages">Paginas</option>
@@ -149,129 +144,121 @@ export default function MetasPage() {
                 <option value="streak">Streak</option>
               </select>
             </label>
-            <label className="text-sm text-gray-700">
+            <label className="text-sm font-medium text-navy">
               Meta alvo
               <input
                 type="number"
                 min="1"
                 value={form.targetValue}
                 onChange={(event) => setForm((current) => ({ ...current, targetValue: event.target.value }))}
-                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
+                className="mt-2 w-full rounded-2xl border border-[#ddd5c8] px-4 py-3 focus:border-blue focus:outline-none"
               />
             </label>
-            <label className="text-sm text-gray-700">
+            <label className="text-sm font-medium text-navy">
               Inicio
               <input
                 type="date"
                 value={form.periodStart}
                 onChange={(event) => setForm((current) => ({ ...current, periodStart: event.target.value }))}
-                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
+                className="mt-2 w-full rounded-2xl border border-[#ddd5c8] px-4 py-3 focus:border-blue focus:outline-none"
               />
             </label>
-            <label className="text-sm text-gray-700">
+            <label className="text-sm font-medium text-navy">
               Fim
               <input
                 type="date"
                 value={form.periodEnd}
                 onChange={(event) => setForm((current) => ({ ...current, periodEnd: event.target.value }))}
-                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
+                className="mt-2 w-full rounded-2xl border border-[#ddd5c8] px-4 py-3 focus:border-blue focus:outline-none"
               />
             </label>
-            <label className="text-sm text-gray-700 md:col-span-2">
+            <label className="text-sm font-medium text-navy md:col-span-2">
               Recompensa XP
               <input
                 type="number"
                 min="0"
                 value={form.rewardXp}
                 onChange={(event) => setForm((current) => ({ ...current, rewardXp: event.target.value }))}
-                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
+                className="mt-2 w-full rounded-2xl border border-[#ddd5c8] px-4 py-3 focus:border-blue focus:outline-none"
               />
             </label>
-            <button className="md:col-span-2 rounded-lg bg-blue text-white font-semibold px-4 py-2">
+            <button className="rounded-full bg-navy px-5 py-3 text-sm font-semibold text-white md:col-span-2">
               Salvar meta
             </button>
           </form>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-10">
+        <section className="grid gap-4 sm:grid-cols-3">
           {[
-            { label: "Ativas", value: summary?.activeCount || 0, sub: "ativas" },
-            { label: "Concluidas", value: summary?.completedCount || 0, sub: "concluidas" },
-            { label: "Taxa de sucesso", value: `${summary?.successRate || 0}%`, sub: "taxa de sucesso" },
-          ].map((stat) => (
-            <div
-              key={stat.label}
-              className="rounded-xl border border-[#e8e4db] bg-white px-4 py-4 text-center shadow-xs"
-            >
-              <p className="font-serif text-2xl font-bold text-navy tabular-nums">
-                {stat.value}
-              </p>
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500">
-                {stat.sub}
-              </p>
-            </div>
+            ["Ativas", summary?.activeCount || 0],
+            ["Concluidas", summary?.completedCount || 0],
+            ["Taxa de sucesso", `${summary?.successRate || 0}%`],
+          ].map(([label, value]) => (
+            <article key={label} className="panel-card px-4 py-6 text-center">
+              <p className="font-serif text-4xl text-navy">{value}</p>
+              <p className="mt-2 text-xs uppercase tracking-[0.18em] text-[#8491a1]">{label}</p>
+            </article>
           ))}
-        </div>
+        </section>
 
-        <div className="space-y-4 mb-12">
-          {activeGoals.length ? activeGoals.map((goal) => (
-            <article
-              key={goal.id}
-              className="rounded-xl border border-[#e8e4db] bg-white p-5 shadow-sm"
-            >
-              <div className="flex flex-wrap items-center gap-2 mb-3">
-                <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-semibold bg-blue-soft text-blue border-blue/20">
-                  {goal.goal_type}
-                </span>
-              </div>
-              <h2 className="font-semibold text-navy text-lg leading-tight">{goal.title}</h2>
-              <p className="text-sm text-gray-500 mt-1">
-                {goal.current_value} de {goal.target_value} {goal.metric_type}
-              </p>
-              <div className="mt-4 flex items-start justify-between gap-3">
-                <div className="flex-1 min-w-0">
-                  <div className="h-3 rounded-full bg-gray-100 overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all bg-[#c5a059]"
-                      style={{ width: `${goal.progress_percentage}%` }}
-                    />
-                  </div>
-                  <div className="mt-2 flex flex-wrap justify-between gap-2 text-xs text-gray-600">
-                    <span>{goal.progress_percentage}% concluido</span>
-                    <span className="text-gray-500">Ate {goal.period_end}</span>
-                  </div>
+        <section className="space-y-4">
+          {loading && <p className="text-center text-[#64748b]">Carregando metas...</p>}
+          {!loading && activeGoals.length === 0 && (
+            <div className="panel-card px-6 py-10 text-center text-[#607082]">Nenhuma meta ativa no momento.</div>
+          )}
+          {activeGoals.map((goal) => (
+            <article key={goal.id} className="panel-card p-6">
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <p className="inline-flex rounded-full bg-[#eef4ff] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-blue">
+                    {goal.goal_type}
+                  </p>
+                  <h2 className="mt-4 text-2xl font-semibold text-navy">{goal.title}</h2>
+                  <p className="mt-1 text-sm text-[#687789]">
+                    {goal.current_value} de {goal.target_value} {goal.metric_type}
+                  </p>
                 </div>
-                <span className="text-lg font-serif font-bold text-navy tabular-nums shrink-0">
-                  +{goal.reward_xp} XP
-                </span>
+                <div className="text-right">
+                  <p className="font-serif text-4xl text-gold">{goal.progress_percentage}%</p>
+                  <p className="text-xs uppercase tracking-[0.16em] text-[#8391a1]">progresso</p>
+                </div>
+              </div>
+              <div className="mt-5 h-2.5 rounded-full bg-[#eee7d9]">
+                <div className="h-full rounded-full bg-gold" style={{ width: `${goal.progress_percentage}%` }} />
+              </div>
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm text-[#687789]">
+                <span>Ate {goal.period_end}</span>
+                <span className="rounded-full bg-[#fff4cf] px-3 py-1 font-semibold text-[#8d6618]">+{goal.reward_xp} XP</span>
               </div>
             </article>
-          )) : (
-            <div className="rounded-xl border border-dashed border-gray-300 bg-white/70 py-10 text-center text-gray-500">
-              Nenhuma meta ativa no momento.
-            </div>
-          )}
-        </div>
-
-        <h2 className="font-serif text-2xl font-bold text-navy mb-4">Metas concluidas</h2>
-        <ul className="space-y-3">
-          {completedGoals.length ? completedGoals.map((goal) => (
-            <li
-              key={goal.id}
-              className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-xl bg-emerald-50/90 border border-emerald-100 px-4 py-3"
+          ))}
+          {!loading && (
+            <button
+              onClick={() => setShowForm(true)}
+              className="w-full rounded-[22px] border border-dashed border-[#d7ccbc] px-6 py-5 text-center text-sm font-medium text-[#687789]"
             >
-              <div>
-                <p className="font-semibold text-navy text-sm">{goal.title}</p>
-                <p className="text-xs text-gray-600">Concluida em {goal.completed_at?.split("T")[0]}</p>
-              </div>
-              <span className="self-start sm:self-center rounded-full bg-gold-light border border-gold/40 px-3 py-1 text-xs font-bold text-amber-900 tabular-nums">
-                +{goal.reward_xp} XP
-              </span>
-            </li>
-          )) : (
-            <li className="text-gray-500">Voce ainda nao concluiu nenhuma meta.</li>
+              + Adicionar nova meta de leitura
+            </button>
           )}
-        </ul>
+        </section>
+
+        <section className="panel-card p-6">
+          <h2 className="font-serif text-4xl text-navy">Metas concluidas</h2>
+          <div className="mt-5 space-y-3">
+            {completedGoals.length === 0 && <p className="text-[#64748b]">Voce ainda nao concluiu nenhuma meta.</p>}
+            {completedGoals.map((goal) => (
+              <article key={goal.id} className="rounded-[22px] bg-[#e9fff1] px-4 py-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="font-semibold text-navy">{goal.title}</p>
+                    <p className="text-sm text-[#5d6979]">Concluida em {goal.completed_at?.split("T")[0]}</p>
+                  </div>
+                  <span className="rounded-full bg-[#fff3c6] px-3 py-1 text-sm font-semibold text-[#8d6618]">+{goal.reward_xp} XP</span>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
       </div>
     </div>
   );
