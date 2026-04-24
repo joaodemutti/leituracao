@@ -1,6 +1,15 @@
-import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Suspense,
+  lazy,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { getCurrentUser } from "../services/AuthService";
 import { getBookById, getReaderSource } from "../services/CatalogService";
+import { getProxiedBlobUrl } from "../lib/proxyUrl.js";
 import {
   finishReading,
   getBookProgress,
@@ -70,7 +79,10 @@ export default function ReaderPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [readerMetrics, setReaderMetrics] = useState({ currentPage: null, totalPages: null });
+  const [readerMetrics, setReaderMetrics] = useState({
+    currentPage: null,
+    totalPages: null,
+  });
 
   const renditionRef = useRef(null);
   const lastSavedPageRef = useRef(0);
@@ -78,7 +90,8 @@ export default function ReaderPage() {
   const hasInitializedReaderRef = useRef(false);
 
   const bookId = useMemo(() => getHashParams().get("book"), []);
-  const readerLabel = readerSource?.type === "pdf" ? "Leitor PDF" : "Leitor EPUB";
+  const readerLabel =
+    readerSource?.type === "pdf" ? "Leitor PDF" : "Leitor EPUB";
 
   useEffect(() => {
     let mounted = true;
@@ -119,16 +132,44 @@ export default function ReaderPage() {
 
         const initialCurrentPage =
           progressData?.current_page ||
-          (resolvedReaderSource?.type === "pdf" ? parsePdfPage(initialLocation) || 1 : null);
+          (resolvedReaderSource?.type === "pdf"
+            ? parsePdfPage(initialLocation) || 1
+            : null);
 
         setUser(currentUser);
         setBook(bookResult.data);
         setProgress(progressData);
         setLocation(initialLocation);
-        setReaderSource(resolvedReaderSource);
+
+        // Apply proxy to URLs - use blob URLs for EPUBs to handle structure correctly
+        let finalReaderSource = null;
+        if (resolvedReaderSource) {
+          if (resolvedReaderSource.type === "epub") {
+            try {
+              const blobUrl = await getProxiedBlobUrl(resolvedReaderSource.url);
+              finalReaderSource = { ...resolvedReaderSource, url: blobUrl };
+            } catch (error) {
+              console.error("Failed to create blob URL for EPUB:", error);
+              throw new Error("Failed to load EPUB: " + error.message);
+            }
+          } else {
+            // PDFs can use regular proxy URLs
+            finalReaderSource = {
+              ...resolvedReaderSource,
+              url: resolvedReaderSource.url, // PDFs don't need proxy, they'll work directly
+            };
+          }
+        }
+
+        if (!mounted) return;
+
+        setReaderSource(finalReaderSource);
         setReaderMetrics({
           currentPage: initialCurrentPage,
-          totalPages: progressData?.estimated_pages || bookResult.data.estimatedPages || null,
+          totalPages:
+            progressData?.estimated_pages ||
+            bookResult.data.estimatedPages ||
+            null,
         });
         lastSavedPageRef.current = initialCurrentPage || 0;
       } catch (loadError) {
@@ -148,62 +189,72 @@ export default function ReaderPage() {
     };
   }, [bookId]);
 
-  const persistProgress = useCallback(async (nextLocation, forceFinish = false, nextMetrics = null) => {
-    if (!user || !book || !nextLocation) return;
+  const persistProgress = useCallback(
+    async (nextLocation, forceFinish = false, nextMetrics = null) => {
+      if (!user || !book || !nextLocation) return;
 
-    const metrics = nextMetrics || (
-      readerSource?.type === "pdf"
-        ? {
-            currentPage: parsePdfPage(nextLocation) || readerMetrics.currentPage,
-            totalPages: readerMetrics.totalPages || book.estimatedPages,
-          }
-        : readDisplayedMetrics(
-            renditionRef.current,
-            readerMetrics.currentPage,
-            readerMetrics.totalPages || book.estimatedPages,
+      const metrics =
+        nextMetrics ||
+        (readerSource?.type === "pdf"
+          ? {
+              currentPage:
+                parsePdfPage(nextLocation) || readerMetrics.currentPage,
+              totalPages: readerMetrics.totalPages || book.estimatedPages,
+            }
+          : readDisplayedMetrics(
+              renditionRef.current,
+              readerMetrics.currentPage,
+              readerMetrics.totalPages || book.estimatedPages,
+            ));
+      const { currentPage, totalPages } = metrics;
+
+      const minutesSpent = Math.max(
+        1,
+        Math.round((Date.now() - lastSaveTimestampRef.current) / 60000),
+      );
+      const pagesDelta = currentPage
+        ? Math.max(0, currentPage - (lastSavedPageRef.current || 0))
+        : 0;
+
+      setSaving(true);
+      const saveResult = forceFinish
+        ? await finishReading(
+            user.id,
+            book.id,
+            nextLocation,
+            currentPage,
+            totalPages,
+            minutesSpent,
           )
-    );
-    const { currentPage, totalPages } = metrics;
+        : await saveReadingPosition(
+            user.id,
+            book.id,
+            nextLocation,
+            currentPage,
+            totalPages,
+            minutesSpent,
+            pagesDelta,
+          );
+      setSaving(false);
 
-    const minutesSpent = Math.max(
-      1,
-      Math.round((Date.now() - lastSaveTimestampRef.current) / 60000),
-    );
-    const pagesDelta = currentPage
-      ? Math.max(0, currentPage - (lastSavedPageRef.current || 0))
-      : 0;
+      if (saveResult.error) {
+        setError(saveResult.error);
+        return;
+      }
 
-    setSaving(true);
-    const saveResult = forceFinish
-      ? await finishReading(
-          user.id,
-          book.id,
-          nextLocation,
-          currentPage,
-          totalPages,
-          minutesSpent,
-        )
-      : await saveReadingPosition(
-          user.id,
-          book.id,
-          nextLocation,
-          currentPage,
-          totalPages,
-          minutesSpent,
-          pagesDelta,
-        );
-    setSaving(false);
-
-    if (saveResult.error) {
-      setError(saveResult.error);
-      return;
-    }
-
-    lastSavedPageRef.current = currentPage || lastSavedPageRef.current;
-    lastSaveTimestampRef.current = Date.now();
-    setProgress(saveResult.data);
-    setReaderMetrics({ currentPage, totalPages });
-  }, [book, readerMetrics.currentPage, readerMetrics.totalPages, readerSource?.type, user]);
+      lastSavedPageRef.current = currentPage || lastSavedPageRef.current;
+      lastSaveTimestampRef.current = Date.now();
+      setProgress(saveResult.data);
+      setReaderMetrics({ currentPage, totalPages });
+    },
+    [
+      book,
+      readerMetrics.currentPage,
+      readerMetrics.totalPages,
+      readerSource?.type,
+      user,
+    ],
+  );
 
   useEffect(() => {
     if (!hasInitializedReaderRef.current || !location) {
@@ -226,7 +277,9 @@ export default function ReaderPage() {
     return (
       <div className="min-h-screen bg-cream flex items-center justify-center px-4">
         <div className="max-w-lg rounded-xl bg-white p-6 shadow-md text-center space-y-4">
-          <h1 className="text-2xl font-bold text-navy">Nao foi possivel abrir o livro</h1>
+          <h1 className="text-2xl font-bold text-navy">
+            Nao foi possivel abrir o livro
+          </h1>
           <p className="text-gray-600">{error}</p>
           <button
             onClick={() => (window.location.hash = "acervo")}
@@ -249,7 +302,9 @@ export default function ReaderPage() {
             <p className="text-sm uppercase tracking-widest text-gold font-semibold">
               Leitor digital
             </p>
-            <h1 className="text-3xl font-serif font-bold text-navy mt-2">{book.title}</h1>
+            <h1 className="text-3xl font-serif font-bold text-navy mt-2">
+              {book.title}
+            </h1>
             <p className="text-gray-600 mt-1">{book.author}</p>
           </div>
 
@@ -298,7 +353,9 @@ export default function ReaderPage() {
           </button>
           <h1 className="text-xl font-serif font-bold mt-1">{book.title}</h1>
           <p className="text-sm text-white/70">{book.author}</p>
-          <p className="text-xs uppercase tracking-[0.2em] text-white/40 mt-1">{readerLabel}</p>
+          <p className="text-xs uppercase tracking-[0.2em] text-white/40 mt-1">
+            {readerLabel}
+          </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3 text-sm text-white/80">
@@ -308,16 +365,16 @@ export default function ReaderPage() {
               ? ` / ${readerMetrics.totalPages || progress?.estimated_pages}`
               : ""}
           </span>
-          <span>
-            {progress?.completion_percentage || 0}% concluido
-          </span>
+          <span>{progress?.completion_percentage || 0}% concluido</span>
           <button
             onClick={() => persistProgress(location, true)}
             className="px-4 py-2 rounded-full bg-gold text-navy font-semibold"
           >
             Concluir leitura
           </button>
-          <span className="text-xs text-white/50">{saving ? "Salvando..." : "Salvo"}</span>
+          <span className="text-xs text-white/50">
+            {saving ? "Salvando..." : "Salvo"}
+          </span>
         </div>
       </div>
 
@@ -353,10 +410,13 @@ export default function ReaderPage() {
           ) : (
             <PdfReader
               fileUrl={readerSource.url}
-              initialPage={parsePdfPage(location) || readerMetrics.currentPage || 1}
+              initialPage={
+                parsePdfPage(location) || readerMetrics.currentPage || 1
+              }
               onDocumentReady={(totalPages) => {
                 setReaderMetrics((currentMetrics) => ({
-                  currentPage: currentMetrics.currentPage || parsePdfPage(location) || 1,
+                  currentPage:
+                    currentMetrics.currentPage || parsePdfPage(location) || 1,
                   totalPages,
                 }));
               }}
@@ -365,10 +425,15 @@ export default function ReaderPage() {
 
                 setReaderMetrics({
                   currentPage: pageNumber,
-                  totalPages: totalPages || readerMetrics.totalPages || book.estimatedPages,
+                  totalPages:
+                    totalPages ||
+                    readerMetrics.totalPages ||
+                    book.estimatedPages,
                 });
                 setLocation((currentLocation) =>
-                  currentLocation === nextLocation ? currentLocation : nextLocation,
+                  currentLocation === nextLocation
+                    ? currentLocation
+                    : nextLocation,
                 );
               }}
             />
@@ -378,5 +443,3 @@ export default function ReaderPage() {
     </div>
   );
 }
-
-

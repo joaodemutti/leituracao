@@ -16,7 +16,10 @@ function isPlaceholderHost(value) {
 
   try {
     const parsed = new URL(value);
-    return parsed.hostname === "example.com" || parsed.hostname.endsWith(".example.com");
+    return (
+      parsed.hostname === "example.com" ||
+      parsed.hostname.endsWith(".example.com")
+    );
   } catch {
     return false;
   }
@@ -39,7 +42,9 @@ function isPdfAssetUrl(value) {
 }
 
 function mapBook(row, filterMap = new Map()) {
-  const filterLabel = row.filter_id ? filterMap.get(row.filter_id) || null : null;
+  const filterLabel = row.filter_id
+    ? filterMap.get(row.filter_id) || null
+    : null;
   const coverUrl = sanitizeAssetUrl(row.cover_url);
   const externalUrl = sanitizeAssetUrl(row.external_url);
   const pdfUrl = sanitizeAssetUrl(row.pdf_url);
@@ -158,7 +163,8 @@ export async function getCategoryByRoute(route) {
     .single();
 
   if (error) {
-    if (error.code === "PGRST116") return { error: "Categoria nao encontrada." };
+    if (error.code === "PGRST116")
+      return { error: "Categoria nao encontrada." };
     return { error: error.message };
   }
 
@@ -196,7 +202,9 @@ export async function listBooksByCategory(route, filter = "Todos") {
   try {
     const category = categoryResult.data;
     const filtersResult = await fetchCategoryFilters(category.id);
-    const filterMap = new Map(filtersResult.map((item) => [item.id, item.label]));
+    const filterMap = new Map(
+      filtersResult.map((item) => [item.id, item.label]),
+    );
 
     let query = supabase
       .from("livros")
@@ -218,7 +226,10 @@ export async function listBooksByCategory(route, filter = "Todos") {
     const { data, error } = await query;
     if (error) return { error: error.message };
 
-    return { data: (data || []).map((row) => mapBook(row, filterMap)), category };
+    return {
+      data: (data || []).map((row) => mapBook(row, filterMap)),
+      category,
+    };
   } catch (error) {
     return { error: error.message };
   }
@@ -270,7 +281,9 @@ export async function searchBooks(rawQuery) {
     .from("livros")
     .select("*")
     .eq("is_active", true)
-    .or(`title.ilike.%${query}%,author.ilike.%${query}%,summary.ilike.%${query}%`)
+    .or(
+      `title.ilike.%${query}%,author.ilike.%${query}%,summary.ilike.%${query}%`,
+    )
     .order("is_featured", { ascending: false })
     .order("title", { ascending: true })
     .limit(20);
@@ -339,7 +352,10 @@ export async function updateCategory(categoryId, payload) {
 }
 
 export async function deleteCategory(categoryId) {
-  const { error } = await supabase.from("categorias").delete().eq("id", categoryId);
+  const { error } = await supabase
+    .from("categorias")
+    .delete()
+    .eq("id", categoryId);
   if (error) return { error: error.message };
   return {};
 }
@@ -368,7 +384,10 @@ export async function updateCategoryFilter(filterId, payload) {
 }
 
 export async function deleteCategoryFilter(filterId) {
-  const { error } = await supabase.from("filtros_categoria").delete().eq("id", filterId);
+  const { error } = await supabase
+    .from("filtros_categoria")
+    .delete()
+    .eq("id", filterId);
   if (error) return { error: error.message };
   return {};
 }
