@@ -18,7 +18,6 @@ function mapSessionProfile(session, perfil) {
   if (!session || !perfil) return null;
   return {
     ...perfil,
-    role: session.user.app_metadata?.role || null,
   };
 }
 
@@ -37,7 +36,7 @@ export async function getCurrentUser(options = {}) {
 
   const { data: perfil } = await supabase
     .from("usuarios")
-    .select("id, name, email, username, created_at")
+    .select("id, name, email, username,is_admin, created_at")
     .eq("id", session.user.id)
     .single();
 
@@ -59,7 +58,7 @@ export function isLoggedIn() {
 }
 
 export function isAdminUser(user = _currentUser) {
-  return user?.role === "admin";
+  return user?.is_admin == true;
 }
 
 /**
@@ -176,7 +175,6 @@ export async function loginUser({ email, password }) {
 
   _currentUser = {
     ...perfil,
-    role: data.user.app_metadata?.role || null,
   };
   return { user: _currentUser };
 }

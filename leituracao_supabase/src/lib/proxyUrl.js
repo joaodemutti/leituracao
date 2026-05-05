@@ -26,7 +26,7 @@ supabase.auth.onAuthStateChange((event, session) => {
  * @param originalUrl The original URL to be proxied
  * @returns Promise<string> A blob URL that can be used with react-reader
  */
-export async function getProxiedBlobUrl(originalUrl) {
+export async function getProxiedBlob(originalUrl) {
   if (!originalUrl) {
     return null;
   }
@@ -53,8 +53,7 @@ export async function getProxiedBlobUrl(originalUrl) {
     throw new Error("User not authenticated");
   }
 
-  const encodedUrl = encodeURIComponent(originalUrl);
-  const proxyUrl = `${supabaseUrl}/functions/v1/fetch-epub?url=${encodedUrl}`;
+  const proxyUrl = `${supabaseUrl}/functions/v1/fetch-epub`
 
   console.log("📥 Fetching resource through proxy:", originalUrl);
 
@@ -63,6 +62,7 @@ export async function getProxiedBlobUrl(originalUrl) {
     const response = await fetch(proxyUrl, {
       headers: {
         Authorization: `Bearer ${authToken}`,
+        "X-Target-Url": originalUrl
       },
     });
 
@@ -72,11 +72,9 @@ export async function getProxiedBlobUrl(originalUrl) {
       );
     }
 
-    const blob = await response.blob();
-    const blobUrl = URL.createObjectURL(blob);
+    const blob = (await response.blob());
 
-    console.log("✅ Blob URL created:", blobUrl);
-    return blobUrl;
+    return blob;
   } catch (error) {
     console.error("❌ Error fetching through proxy:", error);
     throw error;

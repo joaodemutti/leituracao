@@ -1,10 +1,4 @@
-create or replace function public.is_admin()
-returns boolean
-language sql
-stable
-as $$
-  select coalesce((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin', false);
-$$;
+
 
 drop policy if exists "Admins can insert categories" on public.categorias;
 drop policy if exists "Admins can update categories" on public.categorias;

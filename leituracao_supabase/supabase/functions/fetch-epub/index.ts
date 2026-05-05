@@ -7,7 +7,8 @@ serve(async (req) => {
       headers: {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Range, Authorization",
+        "Access-Control-Allow-Headers":
+          "Content-Type, Range, Authorization, X-Target-Url",
         "Access-Control-Max-Age": "86400",
       },
     });
@@ -18,11 +19,10 @@ serve(async (req) => {
     return new Response("Method not allowed", { status: 405 });
   }
 
-  const url = new URL(req.url);
-  const targetUrl = url.searchParams.get("url");
+  const targetUrl = req.headers.get("X-Target-Url")?.trim();
 
   if (!targetUrl) {
-    return new Response("Missing url parameter", { status: 400 });
+    return new Response("Missing X-Target-Url header", { status: 400 });
   }
 
   // Get token from Authorization header
@@ -46,7 +46,7 @@ serve(async (req) => {
   try {
     fetchUrl = new URL(targetUrl);
   } catch {
-    return new Response("Invalid url parameter", { status: 400 });
+    return new Response("Invalid X-Target-Url header", { status: 400 });
   }
 
   // Only allow HTTP and HTTPS
