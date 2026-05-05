@@ -22,7 +22,7 @@ const PdfReader = lazy(() => import("../components/PdfReader.jsx"));
 const PDF_LOCATION_PREFIX = "pdf-page:";
 
 /* =========================
-   HELPERS
+  HELPERS
 ========================= */
 
 function getHashParams() {
@@ -58,12 +58,20 @@ function calculateChapterProgress(metrics) {
     chapterTotalPages = 1,
   } = metrics || {};
 
-  const intraChapter = chapterPage / chapterTotalPages;
+  if (!totalChapters || totalChapters <= 0) return 0;
 
-  const completedChapters = (currentChapter - 1) / totalChapters;
-  const current = intraChapter / totalChapters;
+  const chapterIndex = currentChapter - 1;
 
-  return Math.min(100, Math.round((completedChapters + current) * 100));
+  const intraChapterProgress =
+    chapterTotalPages > 0
+      ? chapterPage / chapterTotalPages
+      : 0;
+
+  const totalProgress =
+    (chapterIndex + intraChapterProgress) / totalChapters;
+
+  const percent = Math.floor(totalProgress * 100);
+  return Math.min(100, percent);
 }
 
 function buildPdfLocation(pageNumber) {
@@ -90,10 +98,11 @@ function parsePdfPage(location) {
 }
 
 /* =========================
-   COMPONENT
+  COMPONENT
 ========================= */
 
 export default function ReaderPage() {
+  const [epubReady, setEpubReady] = useState(false);
   const [user, setUser] = useState(null);
   const [book, setBook] = useState(null);
   const [progress, setProgress] = useState(null);
@@ -117,7 +126,7 @@ export default function ReaderPage() {
     readerSource?.type === "pdf" ? "Leitor PDF" : "Leitor EPUB";
 
   /* =========================
-     LOAD
+    LOAD
   ========================= */
 
   useEffect(() => {
@@ -197,7 +206,7 @@ export default function ReaderPage() {
   }, [bookId]);
 
   /* =========================
-     SAVE
+    SAVE
   ========================= */
 
   const persistProgress = useCallback(
@@ -278,7 +287,7 @@ export default function ReaderPage() {
   );
 
   /* =========================
-     AUTO SAVE
+    AUTO SAVE
   ========================= */
 
   useEffect(() => {
@@ -295,7 +304,7 @@ export default function ReaderPage() {
   }, [location, persistProgress]);
 
   /* =========================
-     RENDER
+    RENDER
   ========================= */
 
   if (loading) return <div className="p-8 text-center">Carregando leitor...</div>;
@@ -321,11 +330,9 @@ export default function ReaderPage() {
           <span>
             {readerSource?.type === "epub" ? (
               <>
-                Chapter {readerMetrics.currentChapter || 1} /{" "}
-                {readerMetrics.totalChapters || 1}
+                Chapter {readerMetrics.currentChapter} / {readerMetrics.totalChapters}
                 {" — "}
-                Page {readerMetrics.chapterPage || 1} /{" "}
-                {readerMetrics.chapterTotalPages || 1}
+                Page {readerMetrics.chapterPage} / {readerMetrics.chapterTotalPages}
               </>
             ) : (
               <>
@@ -337,13 +344,20 @@ export default function ReaderPage() {
 
           <span>
             {readerSource?.type === "epub"
-              ? calculateChapterProgress(readerMetrics)
+              ? (
+                epubReady
+                  ? calculateChapterProgress(readerMetrics)
+                  : progress?.completion_percentage || 0
+              )
               : progress?.completion_percentage || 0}
             % concluido
           </span>
 
           <button
-            onClick={() => persistProgress(location, true)}
+            onClick={async () => {
+              await persistProgress(location, true);
+              window.location.hash = book.categoryId || "acervo";
+            }}
             className="px-4 py-2 rounded-full bg-gold text-navy font-semibold"
           >
             Concluir leitura
@@ -364,7 +378,17 @@ export default function ReaderPage() {
             <ReactReader
               url={readerSource.url}
               location={location || undefined}
-              getRendition={(r) => (renditionRef.current = r)}
+              getRendition={(r) => {
+                renditionRef.current = r;
+
+                const spineLength = r?.book?.spine?.items?.length || 0;
+                console.log(r?.book?.spine?.items)
+
+                setReaderMetrics((prev) => ({
+                  ...prev,
+                  totalChapters: spineLength,
+                }));
+              }}
 
               locationChanged={(nextLocation) => {
                 setLocation(nextLocation);
@@ -376,12 +400,15 @@ export default function ReaderPage() {
 
                 const spine = renditionRef.current?.book?.spine?.items || [];
 
-                setReaderMetrics({
+                const metrics = {
                   currentChapter: (loc.start.index ?? 0) + 1,
-                  totalChapters: spine.length || 1,
+                  totalChapters: spine.length || 0,
                   chapterPage: loc.start.displayed?.page ?? 1,
                   chapterTotalPages: loc.start.displayed?.total ?? 1,
-                });
+                };
+
+                setReaderMetrics(metrics);
+                setEpubReady(true); // 🔥 THIS IS THE REAL “READY SIGNAL”
               }}
 
               epubOptions={{

@@ -236,7 +236,7 @@ export async function saveReadingPosition(
     effectiveCurrentPage && effectiveEstimatedPages
       ? Math.min(100, Math.round((effectiveCurrentPage / effectiveEstimatedPages) * 100))
       : previousProgress.completion_percentage;
-  const isFinished = completionPercentage >= 100;
+  const isFinished = completionPercentage >= 98;
 
   const updatePayload = {
     epub_location: location,
@@ -351,14 +351,14 @@ export async function getUserReadingProgress(userId, limit = 50) {
       ...item,
       book: item.livros
         ? {
-            title: item.livros.title,
-            author: item.livros.author,
-            coverUrl: item.livros.cover_url,
-            emoji: item.livros.cover_emoji,
-            url: item.livros.external_url,
-            pdfUrl: item.livros.pdf_url,
-            epubUrl: item.livros.epub_url,
-          }
+          title: item.livros.title,
+          author: item.livros.author,
+          coverUrl: item.livros.cover_url,
+          emoji: item.livros.cover_emoji,
+          url: item.livros.external_url,
+          pdfUrl: item.livros.pdf_url,
+          epubUrl: item.livros.epub_url,
+        }
         : null,
     })),
   };
