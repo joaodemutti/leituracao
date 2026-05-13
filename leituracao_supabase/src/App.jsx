@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useState } from "react";
+﻿import { Suspense, lazy, useEffect, useState } from "react";
 import { initAuth, isLoggedIn, isAdminUser, refreshCurrentUser } from "./services/AuthService";
 import Navbar from "./components/Navbar";
 import TopBar from "./components/TopBar";
@@ -109,7 +109,7 @@ export default function App() {
       <main id="app-main" className={useAppShell ? "app-surface" : ""}>
         <Suspense
           fallback={
-            <div className="min-h-[40vh] flex items-center justify-center text-navy">
+            <div className="min-h-[40vh] flex items-center justify-center text-crimson">
               Carregando pagina...
             </div>
           }

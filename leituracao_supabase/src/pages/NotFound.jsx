@@ -1,9 +1,9 @@
-export default function NotFound() {
+﻿export default function NotFound() {
   return (
     <div className="min-h-screen bg-cream flex items-center justify-center px-4">
       <div className="text-center max-w-md">
-        <h1 className="text-5xl font-serif font-bold text-navy mb-2">404</h1>
-        <p className="text-2xl font-bold text-navy mb-4">
+        <h1 className="text-5xl font-serif font-bold text-crimson mb-2">404</h1>
+        <p className="text-2xl font-bold text-crimson mb-4">
           Página não encontrada
         </p>
         <p className="text-gray-600 mb-8">
@@ -11,7 +11,7 @@ export default function NotFound() {
         </p>
         <button
           onClick={() => (window.location.hash = "home")}
-          className="px-6 py-3 bg-blue text-white font-semibold rounded-lg hover:bg-blue/90 transition-colors"
+          className="px-6 py-3 bg-secondary text-white font-semibold rounded-lg hover:bg-secondary/90 transition-colors"
         >
           Voltar ao Início
         </button>

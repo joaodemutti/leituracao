@@ -224,6 +224,7 @@ export async function saveReadingPosition(
   estimatedPages = null,
   minutesSpent = 0,
   pagesDelta = 0,
+  completionOverride = null,
 ) {
   const startResult = await startReading(userId, bookId, location, estimatedPages);
   if (startResult.error) return startResult;
@@ -233,9 +234,11 @@ export async function saveReadingPosition(
     estimatedPages ?? previousProgress.estimated_pages ?? (await getStoredEstimatedPages(bookId));
   const effectiveCurrentPage = currentPageApprox ?? previousProgress.current_page;
   const completionPercentage =
-    effectiveCurrentPage && effectiveEstimatedPages
-      ? Math.min(100, Math.round((effectiveCurrentPage / effectiveEstimatedPages) * 100))
-      : previousProgress.completion_percentage;
+    completionOverride != null
+      ? Math.min(100, Math.max(0, Math.round(completionOverride)))
+      : (effectiveCurrentPage && effectiveEstimatedPages
+          ? Math.min(100, Math.round((effectiveCurrentPage / effectiveEstimatedPages) * 100))
+          : previousProgress.completion_percentage);
   const isFinished = completionPercentage >= 98;
 
   const updatePayload = {
@@ -295,6 +298,7 @@ export async function finishReading(
   currentPageApprox = null,
   estimatedPages = null,
   minutesSpent = 0,
+  completionOverride = null,
 ) {
   const currentProgressResult = await startReading(userId, bookId, location, estimatedPages);
   if (currentProgressResult.error) return currentProgressResult;
@@ -313,6 +317,7 @@ export async function finishReading(
     estimatedPages,
     minutesSpent,
     pagesDelta,
+    completionOverride,
   );
 }
 

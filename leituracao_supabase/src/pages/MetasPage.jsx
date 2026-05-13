@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { getCurrentUser } from "../services/AuthService";
 import { createReadingGoal, getGoalProgress, getGoalSummary } from "../services/GoalsService";
 
@@ -93,12 +93,12 @@ export default function MetasPage() {
       <div className="container space-y-7">
         <section className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Minha jornada</p>
-            <h1 className="mt-3 font-serif text-5xl text-navy">Metas de leitura</h1>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-secondary">Minha jornada</p>
+            <h1 className="mt-3 font-serif text-5xl text-crimson">Metas de leitura</h1>
           </div>
           <button
             onClick={() => setShowForm((value) => !value)}
-            className="rounded-full bg-navy px-6 py-3 text-sm font-semibold text-white"
+            className="rounded-full bg-crimson px-6 py-3 text-sm font-semibold text-white"
           >
             {showForm ? "Fechar formulario" : "+ Nova meta"}
           </button>
@@ -108,21 +108,21 @@ export default function MetasPage() {
 
         {showForm && (
           <form onSubmit={handleSubmit} className="panel-card grid gap-4 p-6 md:grid-cols-2">
-            <label className="text-sm font-medium text-navy">
+            <label className="text-sm font-medium text-crimson">
               Titulo
               <input
                 value={form.title}
                 onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))}
-                className="mt-2 w-full rounded-2xl border border-[#ddd5c8] px-4 py-3 focus:border-blue focus:outline-none"
+                className="mt-2 w-full rounded-2xl border border-[#ddd5c8] px-4 py-3 focus:border-secondary focus:outline-none"
                 required
               />
             </label>
-            <label className="text-sm font-medium text-navy">
+            <label className="text-sm font-medium text-crimson">
               Tipo
               <select
                 value={form.goalType}
                 onChange={(event) => setForm((current) => ({ ...current, goalType: event.target.value }))}
-                className="mt-2 w-full rounded-2xl border border-[#ddd5c8] px-4 py-3 focus:border-blue focus:outline-none"
+                className="mt-2 w-full rounded-2xl border border-[#ddd5c8] px-4 py-3 focus:border-secondary focus:outline-none"
               >
                 <option value="daily">Diaria</option>
                 <option value="weekly">Semanal</option>
@@ -131,12 +131,12 @@ export default function MetasPage() {
                 <option value="custom">Personalizada</option>
               </select>
             </label>
-            <label className="text-sm font-medium text-navy">
+            <label className="text-sm font-medium text-crimson">
               Medida
               <select
                 value={form.metricType}
                 onChange={(event) => setForm((current) => ({ ...current, metricType: event.target.value }))}
-                className="mt-2 w-full rounded-2xl border border-[#ddd5c8] px-4 py-3 focus:border-blue focus:outline-none"
+                className="mt-2 w-full rounded-2xl border border-[#ddd5c8] px-4 py-3 focus:border-secondary focus:outline-none"
               >
                 <option value="books">Livros</option>
                 <option value="pages">Paginas</option>
@@ -144,45 +144,45 @@ export default function MetasPage() {
                 <option value="streak">Streak</option>
               </select>
             </label>
-            <label className="text-sm font-medium text-navy">
+            <label className="text-sm font-medium text-crimson">
               Meta alvo
               <input
                 type="number"
                 min="1"
                 value={form.targetValue}
                 onChange={(event) => setForm((current) => ({ ...current, targetValue: event.target.value }))}
-                className="mt-2 w-full rounded-2xl border border-[#ddd5c8] px-4 py-3 focus:border-blue focus:outline-none"
+                className="mt-2 w-full rounded-2xl border border-[#ddd5c8] px-4 py-3 focus:border-secondary focus:outline-none"
               />
             </label>
-            <label className="text-sm font-medium text-navy">
+            <label className="text-sm font-medium text-crimson">
               Inicio
               <input
                 type="date"
                 value={form.periodStart}
                 onChange={(event) => setForm((current) => ({ ...current, periodStart: event.target.value }))}
-                className="mt-2 w-full rounded-2xl border border-[#ddd5c8] px-4 py-3 focus:border-blue focus:outline-none"
+                className="mt-2 w-full rounded-2xl border border-[#ddd5c8] px-4 py-3 focus:border-secondary focus:outline-none"
               />
             </label>
-            <label className="text-sm font-medium text-navy">
+            <label className="text-sm font-medium text-crimson">
               Fim
               <input
                 type="date"
                 value={form.periodEnd}
                 onChange={(event) => setForm((current) => ({ ...current, periodEnd: event.target.value }))}
-                className="mt-2 w-full rounded-2xl border border-[#ddd5c8] px-4 py-3 focus:border-blue focus:outline-none"
+                className="mt-2 w-full rounded-2xl border border-[#ddd5c8] px-4 py-3 focus:border-secondary focus:outline-none"
               />
             </label>
-            <label className="text-sm font-medium text-navy md:col-span-2">
+            <label className="text-sm font-medium text-crimson md:col-span-2">
               Recompensa XP
               <input
                 type="number"
                 min="0"
                 value={form.rewardXp}
                 onChange={(event) => setForm((current) => ({ ...current, rewardXp: event.target.value }))}
-                className="mt-2 w-full rounded-2xl border border-[#ddd5c8] px-4 py-3 focus:border-blue focus:outline-none"
+                className="mt-2 w-full rounded-2xl border border-[#ddd5c8] px-4 py-3 focus:border-secondary focus:outline-none"
               />
             </label>
-            <button className="rounded-full bg-navy px-5 py-3 text-sm font-semibold text-white md:col-span-2">
+            <button className="rounded-full bg-crimson px-5 py-3 text-sm font-semibold text-white md:col-span-2">
               Salvar meta
             </button>
           </form>
@@ -195,7 +195,7 @@ export default function MetasPage() {
             ["Taxa de sucesso", `${summary?.successRate || 0}%`],
           ].map(([label, value]) => (
             <article key={label} className="panel-card px-4 py-6 text-center">
-              <p className="font-serif text-4xl text-navy">{value}</p>
+              <p className="font-serif text-4xl text-crimson">{value}</p>
               <p className="mt-2 text-xs uppercase tracking-[0.18em] text-[#8491a1]">{label}</p>
             </article>
           ))}
@@ -210,21 +210,21 @@ export default function MetasPage() {
             <article key={goal.id} className="panel-card p-6">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                  <p className="inline-flex rounded-full bg-[#eef4ff] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-blue">
+                  <p className="inline-flex rounded-full bg-secondary-light px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-secondary">
                     {goal.goal_type}
                   </p>
-                  <h2 className="mt-4 text-2xl font-semibold text-navy">{goal.title}</h2>
+                  <h2 className="mt-4 text-2xl font-semibold text-crimson">{goal.title}</h2>
                   <p className="mt-1 text-sm text-[#687789]">
                     {goal.current_value} de {goal.target_value} {goal.metric_type}
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="font-serif text-4xl text-gold">{goal.progress_percentage}%</p>
+                  <p className="font-serif text-4xl text-secondary">{goal.progress_percentage}%</p>
                   <p className="text-xs uppercase tracking-[0.16em] text-[#8391a1]">progresso</p>
                 </div>
               </div>
               <div className="mt-5 h-2.5 rounded-full bg-[#eee7d9]">
-                <div className="h-full rounded-full bg-gold" style={{ width: `${goal.progress_percentage}%` }} />
+                <div className="h-full rounded-full bg-secondary" style={{ width: `${goal.progress_percentage}%` }} />
               </div>
               <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm text-[#687789]">
                 <span>Ate {goal.period_end}</span>
@@ -243,14 +243,14 @@ export default function MetasPage() {
         </section>
 
         <section className="panel-card p-6">
-          <h2 className="font-serif text-4xl text-navy">Metas concluidas</h2>
+          <h2 className="font-serif text-4xl text-crimson">Metas concluidas</h2>
           <div className="mt-5 space-y-3">
             {completedGoals.length === 0 && <p className="text-[#64748b]">Voce ainda nao concluiu nenhuma meta.</p>}
             {completedGoals.map((goal) => (
               <article key={goal.id} className="rounded-[22px] bg-[#e9fff1] px-4 py-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <p className="font-semibold text-navy">{goal.title}</p>
+                    <p className="font-semibold text-crimson">{goal.title}</p>
                     <p className="text-sm text-[#5d6979]">Concluida em {goal.completed_at?.split("T")[0]}</p>
                   </div>
                   <span className="rounded-full bg-[#fff3c6] px-3 py-1 text-sm font-semibold text-[#8d6618]">+{goal.reward_xp} XP</span>

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+﻿import { useCallback, useEffect, useMemo, useState } from "react";
 import { getCurrentUser, isAdminUser } from "../services/AuthService";
 import {
   createBook,
@@ -7,12 +7,14 @@ import {
   deleteBook,
   deleteCategory,
   deleteCategoryFilter,
+  deleteBookFile,
   listAdminBooks,
   listAdminCategories,
   listAdminCategoryFilters,
   updateBook,
   updateCategory,
   updateCategoryFilter,
+  uploadBookFile,
 } from "../services/CatalogService";
 
 function parseAdminQuery() {
@@ -59,6 +61,7 @@ const EMPTY_BOOK_FORM = {
   file_size_label: "",
   external_url: "",
   epub_url: "",
+  pdf_url: "",
   is_free: true,
   is_featured: false,
   featured_rank: "",
@@ -116,6 +119,7 @@ function mapBookToForm(book) {
     file_size_label: book.file_size_label || "",
     external_url: book.external_url || "",
     epub_url: book.epub_url || "",
+    pdf_url: book.pdf_url || "",
     is_free: book.is_free ?? true,
     is_featured: book.is_featured ?? false,
     featured_rank: book.featured_rank ?? "",
@@ -162,6 +166,7 @@ function buildBookPayload(form, categoryId) {
     file_size_label: normalizeText(form.file_size_label),
     external_url: normalizeText(form.external_url),
     epub_url: normalizeText(form.epub_url),
+    pdf_url: normalizeText(form.pdf_url),
     is_free: Boolean(form.is_free),
     is_featured: Boolean(form.is_featured),
     featured_rank: normalizeInteger(form.featured_rank),
@@ -187,6 +192,7 @@ export default function AdminCatalogPage() {
   const [isCreatingBook, setIsCreatingBook] = useState(true);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [uploading, setUploading] = useState({ epub: false, pdf: false });
 
   const loadCategories = useCallback(async (nextSelectedCategoryId) => {
     const result = await listAdminCategories();
@@ -410,6 +416,44 @@ export default function AdminCatalogPage() {
     setSaving(false);
   }
 
+  async function handleFileUpload(type, file) {
+    if (!file || !bookForm.id.trim()) {
+      setError("Defina o ID do livro antes de fazer upload.");
+      return;
+    }
+
+    setUploading((current) => ({ ...current, [type]: true }));
+    setError("");
+
+    const result = await uploadBookFile(bookForm.id.trim(), file, type);
+
+    setUploading((current) => ({ ...current, [type]: false }));
+
+    if (result.error) {
+      setError(`Erro ao enviar ${type.toUpperCase()}: ${result.error}`);
+      return;
+    }
+
+    const field = type === "epub" ? "epub_url" : "pdf_url";
+    setBookForm((current) => ({ ...current, [field]: result.data.url }));
+    setNotice(`${type.toUpperCase()} enviado com sucesso.`);
+  }
+
+  async function handleFileDelete(type) {
+    if (!bookForm.id.trim()) return;
+
+    setUploading((current) => ({ ...current, [type]: true }));
+    setError("");
+
+    await deleteBookFile(bookForm.id.trim(), type);
+
+    setUploading((current) => ({ ...current, [type]: false }));
+
+    const field = type === "epub" ? "epub_url" : "pdf_url";
+    setBookForm((current) => ({ ...current, [field]: "" }));
+    setNotice(`${type.toUpperCase()} removido.`);
+  }
+
   async function handleBookSubmit(event) {
     event.preventDefault();
     setSaving(true);
@@ -465,13 +509,13 @@ export default function AdminCatalogPage() {
     return (
       <div className="min-h-screen bg-cream flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-navy mb-4">Acesso restrito</h1>
+          <h1 className="text-2xl font-bold text-crimson mb-4">Acesso restrito</h1>
           <p className="text-gray-600 mb-6">Voce precisa estar autenticado para acessar esta pagina.</p>
           <button
             onClick={() => {
               window.location.hash = "login";
             }}
-            className="px-6 py-2 bg-blue text-white rounded font-semibold hover:bg-blue/90"
+            className="px-6 py-2 bg-secondary text-white rounded font-semibold hover:bg-secondary/90"
           >
             Fazer login
           </button>
@@ -484,7 +528,7 @@ export default function AdminCatalogPage() {
     return (
       <div className="min-h-screen bg-cream flex items-center justify-center">
         <div className="text-center max-w-lg px-4">
-          <h1 className="text-2xl font-bold text-navy mb-4">Acesso restrito</h1>
+          <h1 className="text-2xl font-bold text-crimson mb-4">Acesso restrito</h1>
           <p className="text-gray-600 mb-6">
             Esta area exige a role `admin` no `app_metadata` do usuario autenticado.
           </p>
@@ -492,7 +536,7 @@ export default function AdminCatalogPage() {
             onClick={() => {
               window.location.hash = "profile";
             }}
-            className="px-6 py-2 bg-blue text-white rounded font-semibold hover:bg-blue/90"
+            className="px-6 py-2 bg-secondary text-white rounded font-semibold hover:bg-secondary/90"
           >
             Voltar ao perfil
           </button>
@@ -505,10 +549,10 @@ export default function AdminCatalogPage() {
     <div className="min-h-screen bg-cream py-8 px-4">
       <div className="container max-w-7xl space-y-6">
         <div className="bg-white rounded-lg shadow-md p-6">
-          <p className="text-xs font-semibold uppercase tracking-widest text-gold mb-2">
+          <p className="text-xs font-semibold uppercase tracking-widest text-secondary mb-2">
             Admin
           </p>
-          <h1 className="text-3xl font-serif font-bold text-navy">Gestao de catalogo</h1>
+          <h1 className="text-3xl font-serif font-bold text-crimson">Gestao de catalogo</h1>
           <p className="text-gray-600 mt-2">
             Edite categorias, filtros e livros usando a role `admin` protegida por RLS.
           </p>
@@ -529,7 +573,7 @@ export default function AdminCatalogPage() {
         <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
           <aside className="bg-white rounded-lg shadow-md p-4 h-fit">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-navy">Categorias</h2>
+              <h2 className="text-lg font-semibold text-crimson">Categorias</h2>
               <button
                 type="button"
                 onClick={() => {
@@ -543,7 +587,7 @@ export default function AdminCatalogPage() {
                   setError("");
                   setNotice("");
                 }}
-                className="px-3 py-1.5 rounded bg-blue text-white text-sm font-semibold hover:bg-blue/90"
+                className="px-3 py-1.5 rounded bg-secondary text-white text-sm font-semibold hover:bg-secondary/90"
               >
                 Nova
               </button>
@@ -559,12 +603,12 @@ export default function AdminCatalogPage() {
                   }}
                   className={`w-full rounded-lg border px-3 py-3 text-left transition-colors ${
                     selectedCategoryId === category.id && !isCreatingCategory
-                      ? "border-blue bg-blue-soft"
+                      ? "border-secondary bg-secondary-light"
                       : "border-gray-200 hover:border-gray-300"
                   }`}
                 >
                   <div className="flex items-center justify-between gap-3">
-                    <span className="font-semibold text-navy">{category.label}</span>
+                    <span className="font-semibold text-crimson">{category.label}</span>
                     {!category.is_active && (
                       <span className="text-xs font-semibold text-red-600">Inativa</span>
                     )}
@@ -578,7 +622,7 @@ export default function AdminCatalogPage() {
           <div className="space-y-6">
             <section className="bg-white rounded-lg shadow-md p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold text-navy">
+                <h2 className="text-xl font-semibold text-crimson">
                   {isCreatingCategory ? "Nova categoria" : "Editar categoria"}
                 </h2>
                 {!isCreatingCategory && selectedCategoryId && (
@@ -703,7 +747,7 @@ export default function AdminCatalogPage() {
                   <button
                     type="submit"
                     disabled={saving}
-                    className="px-4 py-2 rounded bg-blue text-white font-semibold hover:bg-blue/90 disabled:opacity-50"
+                    className="px-4 py-2 rounded bg-secondary text-white font-semibold hover:bg-secondary/90 disabled:opacity-50"
                   >
                     {isCreatingCategory ? "Criar categoria" : "Salvar categoria"}
                   </button>
@@ -728,7 +772,7 @@ export default function AdminCatalogPage() {
             <section className="grid gap-6 xl:grid-cols-2">
               <div className="bg-white rounded-lg shadow-md p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-semibold text-navy">Filtros</h2>
+                  <h2 className="text-xl font-semibold text-crimson">Filtros</h2>
                   <button
                     type="button"
                     onClick={() => {
@@ -736,7 +780,7 @@ export default function AdminCatalogPage() {
                       setIsCreatingFilter(true);
                     }}
                     disabled={!selectedCategoryId}
-                    className="px-3 py-1.5 rounded bg-blue text-white text-sm font-semibold hover:bg-blue/90 disabled:opacity-50"
+                    className="px-3 py-1.5 rounded bg-secondary text-white text-sm font-semibold hover:bg-secondary/90 disabled:opacity-50"
                   >
                     Novo
                   </button>
@@ -756,7 +800,7 @@ export default function AdminCatalogPage() {
                         }}
                         className="text-left"
                       >
-                        <p className="font-medium text-navy">{filter.label}</p>
+                        <p className="font-medium text-crimson">{filter.label}</p>
                         <p className="text-sm text-gray-500">Ordem {filter.sort_order}</p>
                       </button>
                       <button
@@ -797,7 +841,7 @@ export default function AdminCatalogPage() {
                     <button
                       type="submit"
                       disabled={saving || !selectedCategoryId}
-                      className="px-4 py-2 rounded bg-blue text-white font-semibold hover:bg-blue/90 disabled:opacity-50"
+                      className="px-4 py-2 rounded bg-secondary text-white font-semibold hover:bg-secondary/90 disabled:opacity-50"
                     >
                       {isCreatingFilter ? "Criar filtro" : "Salvar filtro"}
                     </button>
@@ -819,7 +863,7 @@ export default function AdminCatalogPage() {
 
               <div className="bg-white rounded-lg shadow-md p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-semibold text-navy">Livros</h2>
+                  <h2 className="text-xl font-semibold text-crimson">Livros</h2>
                   <button
                     type="button"
                     onClick={() => {
@@ -827,7 +871,7 @@ export default function AdminCatalogPage() {
                       setIsCreatingBook(true);
                     }}
                     disabled={!selectedCategoryId}
-                    className="px-3 py-1.5 rounded bg-blue text-white text-sm font-semibold hover:bg-blue/90 disabled:opacity-50"
+                    className="px-3 py-1.5 rounded bg-secondary text-white text-sm font-semibold hover:bg-secondary/90 disabled:opacity-50"
                   >
                     Novo
                   </button>
@@ -847,7 +891,7 @@ export default function AdminCatalogPage() {
                         }}
                         className="text-left"
                       >
-                        <p className="font-medium text-navy">{book.title}</p>
+                        <p className="font-medium text-crimson">{book.title}</p>
                         <p className="text-sm text-gray-500">
                           {book.author} · {book.id}
                         </p>
@@ -929,14 +973,82 @@ export default function AdminCatalogPage() {
                       className="w-full rounded border border-gray-300 px-3 py-2"
                     />
                   </label>
-                  <label className="text-sm text-gray-700">
-                    <span className="block mb-1 font-medium">EPUB URL</span>
+                  <div className="text-sm text-gray-700">
+                    <span className="block mb-1 font-medium">EPUB</span>
                     <input
                       value={bookForm.epub_url}
                       onChange={(event) => setBookForm((current) => ({ ...current, epub_url: event.target.value }))}
+                      placeholder="URL ou use o upload abaixo"
                       className="w-full rounded border border-gray-300 px-3 py-2"
                     />
-                  </label>
+                    <div className="mt-2 flex items-center gap-2">
+                      <label className={`cursor-pointer rounded border px-3 py-1.5 text-xs font-medium transition-colors ${uploading.epub ? "border-gray-200 bg-gray-100 text-gray-400" : "border-gray-300 hover:bg-gray-50 text-gray-700"}`}>
+                        {uploading.epub ? "Enviando..." : "Fazer upload .epub"}
+                        <input
+                          type="file"
+                          accept=".epub,application/epub+zip,application/octet-stream"
+                          className="sr-only"
+                          disabled={uploading.epub}
+                          onChange={(event) => {
+                            if (event.target.files?.[0]) {
+                              handleFileUpload("epub", event.target.files[0]);
+                              event.target.value = "";
+                            }
+                          }}
+                        />
+                      </label>
+                      {bookForm.epub_url && !uploading.epub && (
+                        <button
+                          type="button"
+                          onClick={() => handleFileDelete("epub")}
+                          className="text-xs font-medium text-red-600 hover:text-red-700"
+                        >
+                          Remover arquivo
+                        </button>
+                      )}
+                      {bookForm.epub_url && (
+                        <span className="text-xs text-green-600">EPUB definido</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="text-sm text-gray-700">
+                    <span className="block mb-1 font-medium">PDF</span>
+                    <input
+                      value={bookForm.pdf_url}
+                      onChange={(event) => setBookForm((current) => ({ ...current, pdf_url: event.target.value }))}
+                      placeholder="URL ou use o upload abaixo"
+                      className="w-full rounded border border-gray-300 px-3 py-2"
+                    />
+                    <div className="mt-2 flex items-center gap-2">
+                      <label className={`cursor-pointer rounded border px-3 py-1.5 text-xs font-medium transition-colors ${uploading.pdf ? "border-gray-200 bg-gray-100 text-gray-400" : "border-gray-300 hover:bg-gray-50 text-gray-700"}`}>
+                        {uploading.pdf ? "Enviando..." : "Fazer upload .pdf"}
+                        <input
+                          type="file"
+                          accept=".pdf,application/pdf"
+                          className="sr-only"
+                          disabled={uploading.pdf}
+                          onChange={(event) => {
+                            if (event.target.files?.[0]) {
+                              handleFileUpload("pdf", event.target.files[0]);
+                              event.target.value = "";
+                            }
+                          }}
+                        />
+                      </label>
+                      {bookForm.pdf_url && !uploading.pdf && (
+                        <button
+                          type="button"
+                          onClick={() => handleFileDelete("pdf")}
+                          className="text-xs font-medium text-red-600 hover:text-red-700"
+                        >
+                          Remover arquivo
+                        </button>
+                      )}
+                      {bookForm.pdf_url && (
+                        <span className="text-xs text-green-600">PDF definido</span>
+                      )}
+                    </div>
+                  </div>
                   <label className="text-sm text-gray-700">
                     <span className="block mb-1 font-medium">Capa URL</span>
                     <input
@@ -1031,7 +1143,7 @@ export default function AdminCatalogPage() {
                     <button
                       type="submit"
                       disabled={saving || !selectedCategoryId}
-                      className="px-4 py-2 rounded bg-blue text-white font-semibold hover:bg-blue/90 disabled:opacity-50"
+                      className="px-4 py-2 rounded bg-secondary text-white font-semibold hover:bg-secondary/90 disabled:opacity-50"
                     >
                       {isCreatingBook ? "Criar livro" : "Salvar livro"}
                     </button>

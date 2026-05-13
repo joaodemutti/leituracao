@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+﻿import { useEffect, useRef, useState } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
@@ -63,10 +63,10 @@ export default function PdfReader({ fileUrl, initialPage = 1, onDocumentReady, o
   };
 
   return (
-    <div className="h-full flex flex-col bg-slate-950">
-      <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between gap-3">
-        <div className="text-sm text-white/70">
-          Pagina {pageNumber}
+    <div className="h-full flex flex-col bg-[#f0ece4]">
+      <div className="px-4 py-3 border-b border-[#ddd5c8] bg-white flex items-center justify-between gap-3">
+        <div className="text-sm text-[#64748b]">
+          Página {pageNumber}
           {numPages ? ` de ${numPages}` : ""}
         </div>
 
@@ -74,32 +74,32 @@ export default function PdfReader({ fileUrl, initialPage = 1, onDocumentReady, o
           <button
             onClick={() => setPageNumber((currentPage) => clampPage(currentPage - 1, numPages))}
             disabled={pageNumber <= 1}
-            className="px-3 py-1.5 rounded-full border border-white/15 text-sm text-white disabled:opacity-40"
+            className="px-4 py-2 rounded-full border border-[#ddd5c8] text-sm font-medium text-crimson disabled:opacity-40 hover:bg-[#f6f1e8] transition-colors"
           >
             Anterior
           </button>
           <button
             onClick={() => setPageNumber((currentPage) => clampPage(currentPage + 1, numPages))}
             disabled={Boolean(numPages) && pageNumber >= numPages}
-            className="px-3 py-1.5 rounded-full bg-gold text-navy text-sm font-semibold disabled:opacity-40"
+            className="px-4 py-2 rounded-full bg-crimson text-white text-sm font-semibold disabled:opacity-40 hover:bg-crimson-mid transition-colors"
           >
-            Proxima
+            Próxima
           </button>
         </div>
       </div>
 
-      <div ref={containerRef} className="flex-1 overflow-auto p-4 md:p-6">
+      <div ref={containerRef} className="flex-1 overflow-auto p-4 md:p-6 bg-[#f0ece4]">
         <Document
           file={fileUrl}
           onLoadSuccess={handleDocumentLoadSuccess}
           onLoadError={(error) => setLoadError(error.message || "Nao foi possivel carregar o PDF.")}
           loading={
-            <div className="min-h-[60vh] flex items-center justify-center text-white/70">
+            <div className="min-h-[60vh] flex items-center justify-center text-[#64748b]">
               Carregando PDF...
             </div>
           }
           error={
-            <div className="min-h-[60vh] flex items-center justify-center text-center text-red-200 px-4">
+            <div className="min-h-[60vh] flex items-center justify-center text-center text-red-600 px-4">
               {loadError || "Nao foi possivel carregar o PDF."}
             </div>
           }
@@ -111,8 +111,8 @@ export default function PdfReader({ fileUrl, initialPage = 1, onDocumentReady, o
             renderAnnotationLayer
             renderTextLayer
             loading={
-              <div className="min-h-[60vh] flex items-center justify-center text-white/70">
-                Carregando pagina...
+              <div className="min-h-[60vh] flex items-center justify-center text-[#64748b]">
+                Carregando página...
               </div>
             }
             className="shadow-2xl"

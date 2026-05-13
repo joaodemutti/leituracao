@@ -464,3 +464,27 @@ export function getReaderSource(book) {
 export function canOpenInReader(book) {
   return Boolean(getReaderSource(book));
 }
+
+export async function uploadBookFile(bookId, file, type) {
+  const ext = type === "epub" ? "epub" : "pdf";
+  const path = `${bookId}.${ext}`;
+
+  const { error } = await supabase.storage
+    .from("books")
+    .upload(path, file, { upsert: true });
+
+  if (error) return { error: error.message };
+
+  const { data } = supabase.storage.from("books").getPublicUrl(path);
+  return { data: { url: data.publicUrl } };
+}
+
+export async function deleteBookFile(bookId, type) {
+  const ext = type === "epub" ? "epub" : "pdf";
+  const { error } = await supabase.storage
+    .from("books")
+    .remove([`${bookId}.${ext}`]);
+
+  if (error) return { error: error.message };
+  return { data: true };
+}

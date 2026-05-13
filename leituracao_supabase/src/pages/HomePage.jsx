@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { refreshCurrentUser } from "../services/AuthService";
 import { listCategories, listFeaturedBooks } from "../services/CatalogService";
 import { getGoalSummary } from "../services/GoalsService";
@@ -62,14 +62,14 @@ export default function HomePage() {
     return (
       <div className="page-section">
         <div className="container space-y-8">
-          <section className="hero-shadow overflow-hidden rounded-[34px] bg-navy text-white">
+          <section className="hero-shadow overflow-hidden rounded-[34px] bg-crimson-dark text-white">
             <div className="grid gap-10 px-6 py-12 md:px-10 md:py-16 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
               <div className="max-w-[640px]">
-                <div className="inline-flex rounded-full border border-white/10 bg-white/8 px-4 py-2 text-sm text-white/80">
+                <div className="inline-flex rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm text-white/80">
                   Mais de 4.200 livros gratuitos para voce
                 </div>
                 <h1 className="mt-6 max-w-[11ch] text-balance font-serif text-5xl font-semibold leading-[0.95] text-white md:text-7xl">
-                  Bem-vindo a <span className="text-gold">LeiturAcao</span>
+                  Bem-vindo a <span className="text-secondary">LeiturAcao</span>
                 </h1>
                 <p className="mt-6 max-w-[580px] text-lg text-white/76">
                   Sua biblioteca digital gratuita para ler, salvar progresso, ganhar pontos e subir de nivel em uma jornada de leitura consistente.
@@ -82,8 +82,8 @@ export default function HomePage() {
                     ["100%", "Gratuito"],
                     ["12k+", "Leitores"],
                   ].map(([value, label]) => (
-                    <article key={label} className="rounded-[22px] border border-white/10 bg-white/6 px-4 py-5">
-                      <p className="font-serif text-3xl text-gold">{value}</p>
+                    <article key={label} className="rounded-[22px] border border-white/20 bg-white/10 px-4 py-5">
+                      <p className="font-serif text-3xl">{value}</p>
                       <p className="mt-1 text-xs uppercase tracking-[0.18em] text-white/60">{label}</p>
                     </article>
                   ))}
@@ -91,11 +91,11 @@ export default function HomePage() {
               </div>
 
               <div className="grid gap-5">
-                <article className="rounded-[30px] bg-white p-6 text-navy shadow-xl">
-                  <div className="mb-3 inline-flex rounded-full bg-[#fef3d4] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#9c6d1b]">
+                <article className="rounded-[30px] bg-white p-6 text-crimson shadow-xl">
+                  <div className="mb-3 inline-flex rounded-full bg-secondary-light px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-secondary">
                     Recomendado
                   </div>
-                  <h2 className="font-serif text-3xl font-semibold">Criar conta gratis</h2>
+                  <h2 className="font-serif text-3xl font-bold">Criar conta gratis</h2>
                   <p className="mt-3 text-sm text-[#5d6979]">
                     Salve favoritos, acompanhe historico, mantenha sua sequencia e participe do ranking.
                   </p>
@@ -109,14 +109,14 @@ export default function HomePage() {
                     onClick={() => {
                       window.location.hash = "register";
                     }}
-                    className="mt-6 w-full rounded-full bg-gold px-5 py-3 font-semibold text-navy transition-colors hover:bg-[#d49f47]"
+                    className="mt-6 w-full rounded-full bg-secondary px-5 py-3 font-semibold text-white transition-colors hover:bg-[#d45f00]"
                   >
                     Criar conta gratuita
                   </button>
                 </article>
 
-                <article className="rounded-[30px] bg-white px-6 py-6 text-navy shadow-xl">
-                  <h2 className="font-serif text-3xl font-semibold">Ja tenho conta</h2>
+                <article className="rounded-[30px] bg-white px-6 py-6 text-crimson shadow-xl">
+                  <h2 className="font-serif text-3xl font-bold">Ja tenho conta</h2>
                   <p className="mt-3 text-sm text-[#5d6979]">
                     Entre com seu e-mail e senha para continuar sua jornada.
                   </p>
@@ -124,7 +124,7 @@ export default function HomePage() {
                     onClick={() => {
                       window.location.hash = "login";
                     }}
-                    className="mt-6 w-full rounded-full bg-navy px-5 py-3 font-semibold text-white transition-colors hover:bg-navy-light"
+                    className="mt-6 w-full rounded-full bg-crimson px-5 py-3 font-semibold text-white transition-colors hover:bg-crimson-mid"
                   >
                     Entrar na minha conta
                   </button>
@@ -135,8 +135,8 @@ export default function HomePage() {
 
           <section id="landing-about" className="grid gap-5 lg:grid-cols-[0.95fr_1.05fr]">
             <article className="panel-card p-7">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Explore o acervo</p>
-              <h2 className="mt-3 font-serif text-4xl text-navy">Comece lendo sem friccao</h2>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-secondary">Explore o acervo</p>
+              <h2 className="mt-3 font-serif text-4xl text-crimson">Comece lendo sem friccao</h2>
               <p className="mt-3 text-[#5e6b7c]">
                 O acervo esta organizado por categoria, com materiais gratuitos, classicos e trilhas para estudo, literatura e formacao pessoal.
               </p>
@@ -144,7 +144,7 @@ export default function HomePage() {
                 onClick={() => {
                   window.location.hash = "acervo";
                 }}
-                className="mt-6 rounded-full border border-[#d9cfbf] px-5 py-3 text-sm font-semibold text-navy transition-colors hover:bg-[#f6f1e8]"
+                className="mt-6 rounded-full border border-[#d9cfbf] px-5 py-3 text-sm font-semibold text-crimson transition-colors hover:bg-[#f6f1e8]"
               >
                 Navegar pelo acervo
               </button>
@@ -160,7 +160,7 @@ export default function HomePage() {
                   className="panel-card p-6 text-left transition-transform hover:-translate-y-0.5"
                 >
                   <div className="text-3xl">{category.emoji}</div>
-                  <h3 className="mt-4 font-serif text-2xl text-navy">{category.label}</h3>
+                  <h3 className="mt-4 font-serif text-2xl text-crimson">{category.label}</h3>
                   <p className="mt-2 text-sm text-[#5e6b7c]">{category.desc}</p>
                 </button>
               ))}
@@ -176,18 +176,18 @@ export default function HomePage() {
   return (
     <div className="page-section">
       <div className="container space-y-7">
-        <section className="overflow-hidden rounded-[34px] bg-navy text-white hero-shadow">
+        <section className="overflow-hidden rounded-[34px] bg-crimson-dark text-white hero-shadow">
           <div className="grid gap-6 px-6 py-8 md:px-10 md:py-10 lg:grid-cols-[1fr_220px] lg:items-center">
             <div>
               <p className="text-sm text-white/68">Bom dia, {user.name?.split(" ")[0] || user.username}</p>
               <h1 className="mt-3 font-serif text-4xl text-white md:text-5xl">Continue sua jornada de leitura</h1>
-              <div className="mt-5 inline-flex rounded-full border border-white/10 bg-white/10 px-4 py-2 text-sm text-gold">
+              <div className="mt-5 inline-flex rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm text-secondary">
                 {stats?.current_streak || 0} dias seguidos sem perder sua sequencia
               </div>
               <div className="mt-6 max-w-[430px]">
                 <div className="h-2 rounded-full bg-white/10">
                   <div
-                    className="h-full rounded-full bg-gold"
+                    className="h-full rounded-full bg-secondary"
                     style={{ width: `${Math.min(100, ((stats?.xp_points || 0) % 1000) / 10)}%` }}
                   />
                 </div>
@@ -197,9 +197,9 @@ export default function HomePage() {
               </div>
             </div>
 
-            <article className="ml-auto flex h-[150px] w-[150px] flex-col items-center justify-center rounded-[28px] border border-white/10 bg-white/6 text-center">
-              <p className="font-serif text-5xl text-gold">{stats?.level || 1}</p>
-              <p className="mt-1 text-base text-gold">Explorador</p>
+            <article className="ml-auto flex h-[150px] w-[150px] flex-col items-center justify-center rounded-[28px] border border-white/20 bg-white/10 text-center">
+              <p className="font-serif text-5xl text-secondary">{stats?.level || 1}</p>
+              <p className="mt-1 text-base text-secondary">Explorador</p>
               <p className="mt-2 text-xs uppercase tracking-[0.18em] text-white/55">Nivel atual</p>
             </article>
           </div>
@@ -214,7 +214,7 @@ export default function HomePage() {
             ["Metas ativas", `${goalSummary?.activeCount || 0}/${(goalSummary?.activeCount || 0) + (goalSummary?.completedCount || 0)}`],
           ].map(([label, value]) => (
             <article key={label} className="panel-card p-6">
-              <p className="font-serif text-4xl text-navy">{value}</p>
+              <p className="font-serif text-4xl text-crimson">{value}</p>
               <p className="mt-2 text-xs uppercase tracking-[0.18em] text-[#7a8797]">{label}</p>
             </article>
           ))}
@@ -223,12 +223,12 @@ export default function HomePage() {
         {currentReading && (
           <section className="panel-card p-6">
             <div className="mb-5 flex items-center justify-between gap-3">
-              <h2 className="font-serif text-4xl text-navy">Continue lendo</h2>
+              <h2 className="font-serif text-4xl text-crimson">Continue lendo</h2>
               <button
                 onClick={() => {
                   window.location.hash = "registrar-leitura";
                 }}
-                className="text-sm font-semibold text-blue"
+                className="text-sm font-semibold text-secondary"
               >
                 Registrar leitura
               </button>
@@ -238,14 +238,14 @@ export default function HomePage() {
                 {currentReading.book?.emoji || "Livro"}
               </div>
               <div className="min-w-0 flex-1">
-                <h3 className="text-2xl font-semibold text-navy">{currentReading.book?.title}</h3>
+                <h3 className="text-2xl font-semibold text-crimson">{currentReading.book?.title}</h3>
                 <p className="text-sm text-[#667587]">
                   {currentReading.book?.author} - Pag. {currentReading.current_page || 0}
                   {currentReading.estimated_pages ? ` de ${currentReading.estimated_pages}` : ""}
                 </p>
                 <div className="mt-4 h-2.5 rounded-full bg-[#e9e2d5]">
                   <div
-                    className="h-full rounded-full bg-navy"
+                    className="h-full rounded-full bg-crimson"
                     style={{ width: `${currentReading.completion_percentage || 0}%` }}
                   />
                 </div>
@@ -257,7 +257,7 @@ export default function HomePage() {
                 onClick={() => {
                   window.location.hash = `reader?book=${currentReading.book_id}`;
                 }}
-                className="rounded-full bg-navy px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-navy-light"
+                className="rounded-full bg-crimson px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-crimson-mid"
               >
                 Continuar
               </button>
@@ -268,12 +268,12 @@ export default function HomePage() {
         <section className="grid gap-6 lg:grid-cols-[1fr_360px]">
           <article className="panel-card p-6">
             <div className="mb-6 flex items-center justify-between gap-3">
-              <h2 className="font-serif text-4xl text-navy">Sugestoes para voce</h2>
+              <h2 className="font-serif text-4xl text-crimson">Sugestoes para voce</h2>
               <button
                 onClick={() => {
                   window.location.hash = "sugestoes";
                 }}
-                className="text-sm font-semibold text-blue"
+                className="text-sm font-semibold text-secondary"
               >
                 Ver tudo
               </button>
@@ -288,7 +288,7 @@ export default function HomePage() {
                     <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#7e8796]">
                       {"match" in book ? `${book.match}% match` : "Destaque"}
                     </p>
-                    <h3 className="text-lg font-semibold text-navy">{book.title}</h3>
+                    <h3 className="text-lg font-semibold text-crimson">{book.title}</h3>
                     <p className="text-sm text-[#6c7a8c]">{book.author}</p>
                     <p className="min-h-[60px] text-sm text-[#5c6a7b]">
                       {"reason" in book ? book.reason : book.summary}
@@ -297,7 +297,7 @@ export default function HomePage() {
                       onClick={() => {
                         window.location.hash = `reader?book=${book.id}`;
                       }}
-                      className="mt-2 w-full rounded-full bg-navy px-4 py-2.5 text-sm font-semibold text-white"
+                      className="mt-2 w-full rounded-full bg-crimson px-4 py-2.5 text-sm font-semibold text-white"
                     >
                       Ler agora
                     </button>
@@ -309,22 +309,22 @@ export default function HomePage() {
 
           <div className="grid gap-5">
             <article className="panel-card p-6">
-              <h2 className="font-serif text-3xl text-navy">Ranking semanal</h2>
+              <h2 className="font-serif text-3xl text-crimson">Ranking semanal</h2>
               <ol className="mt-5 space-y-3">
                 {leaderboard.slice(0, 5).map((entry) => (
                   <li key={`${entry.user_id}-${entry.rank}`} className="flex items-center justify-between rounded-[20px] bg-[#fbf8f2] px-4 py-3">
                     <div>
-                      <p className="font-semibold text-navy">{entry.rank}o {entry.display_name}</p>
+                      <p className="font-semibold text-crimson">{entry.rank}o {entry.display_name}</p>
                       <p className="text-xs uppercase tracking-[0.14em] text-[#8090a0]">Nivel {entry.level}</p>
                     </div>
-                    <p className="font-serif text-2xl text-gold">{entry.xp_points}</p>
+                    <p className="font-serif text-2xl text-secondary">{entry.xp_points}</p>
                   </li>
                 ))}
               </ol>
             </article>
 
             <article className="panel-card p-6">
-              <h2 className="font-serif text-3xl text-navy">Acessos rapidos</h2>
+              <h2 className="font-serif text-3xl text-crimson">Acessos rapidos</h2>
               <div className="mt-4 grid gap-3">
                 {[
                   ["Registrar leitura", "registrar-leitura"],
@@ -337,7 +337,7 @@ export default function HomePage() {
                     onClick={() => {
                       window.location.hash = route;
                     }}
-                    className="rounded-[20px] border border-[#e8dfcf] bg-[#fcfaf5] px-4 py-4 text-left font-semibold text-navy transition-colors hover:bg-white"
+                    className="rounded-[20px] border border-[#e8dfcf] bg-[#fcfaf5] px-4 py-4 text-left font-semibold text-crimson transition-colors hover:bg-white"
                   >
                     {label}
                   </button>

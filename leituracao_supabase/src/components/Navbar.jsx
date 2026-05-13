@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { isAcervoSection } from "../data/categoriesNav";
 import { isAdminUser, logoutUser, refreshCurrentUser } from "../services/AuthService";
 import { searchBooks } from "../services/SearchService";
@@ -80,11 +80,11 @@ export default function Navbar({ currentPage }) {
           className="flex flex-shrink-0 items-center gap-3"
           aria-label="LeiturAcao - Ir para o inicio"
         >
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-navy text-[10px] font-semibold uppercase tracking-[0.12em] text-white shadow-sm">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-crimson text-[10px] font-semibold uppercase tracking-[0.12em] text-white shadow-sm">
             LA
           </div>
-          <div className="hidden whitespace-nowrap font-serif text-[1.95rem] font-semibold leading-none text-navy sm:block">
-            Leitur<span className="text-gold">Acao</span>
+          <div className="hidden whitespace-nowrap font-serif text-[1.95rem] font-semibold leading-none text-crimson-dark sm:block">
+            Leitur<span className="text-secondary">Acao</span>
           </div>
         </button>
 
@@ -99,11 +99,10 @@ export default function Navbar({ currentPage }) {
               <button
                 key={link.route}
                 onClick={() => handleNavigate(link.route)}
-                className={`rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
-                  active
-                    ? "bg-blue-soft text-blue shadow-[inset_0_0_0_1px_rgba(26,95,168,0.08)]"
-                    : "text-[#405066] hover:bg-[#f4efe7] hover:text-navy"
-                }`}
+                className={`rounded-xl px-3 py-2 text-sm font-medium transition-colors ${active
+                    ? "bg-secondary-light text-secondary shadow-[inset_0_0_0_1px_rgba(26,95,168,0.08)]"
+                    : "text-[#405066] hover:bg-[#f4efe7] hover:text-crimson"
+                  }`}
                 aria-current={active ? "page" : undefined}
               >
                 {link.label}
@@ -122,7 +121,7 @@ export default function Navbar({ currentPage }) {
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Buscar livros..."
-            className="w-full rounded-full border border-[#e5dfd4] bg-[#f8f6f1] py-2.5 pl-10 pr-4 text-sm text-navy placeholder:text-[#9aa2ad] focus:border-blue focus:bg-white focus:outline-none"
+            className="w-full rounded-full border border-[#e5dfd4] bg-[#f8f6f1] py-2.5 pl-10 pr-4 text-sm text-crimson placeholder:text-[#9aa2ad] focus:border-secondary focus:bg-white focus:outline-none"
             aria-label="Buscar livros"
           />
           <svg
@@ -159,7 +158,7 @@ export default function Navbar({ currentPage }) {
                       {book.emoji || "Livro"}
                     </div>
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-navy">{book.title}</p>
+                      <p className="truncate text-sm font-semibold text-crimson">{book.title}</p>
                       <p className="truncate text-xs text-[#64748b]">{book.author}</p>
                     </div>
                   </button>
@@ -173,13 +172,13 @@ export default function Navbar({ currentPage }) {
             <>
               <button
                 onClick={() => handleNavigate("profile")}
-                className="flex h-11 w-11 items-center justify-center rounded-full bg-navy text-sm font-semibold text-white"
+                className="flex h-11 w-11 items-center justify-center rounded-full bg-crimson text-sm font-semibold text-white"
               >
                 {getInitials(user.name || user.username)}
               </button>
               <button
                 onClick={handleLogout}
-                className="rounded-full border border-[#e2dccc] px-4 py-2 text-sm font-medium text-[#526070] transition-colors hover:border-[#c8bea9] hover:text-navy"
+                className="rounded-full border border-[#e2dccc] px-4 py-2 text-sm font-medium text-[#526070] transition-colors hover:border-[#c8bea9] hover:text-crimson"
               >
                 Sair
               </button>
@@ -188,13 +187,13 @@ export default function Navbar({ currentPage }) {
             <>
               <button
                 onClick={() => handleNavigate("login")}
-                className="rounded-full border border-[#e2dccc] px-5 py-2 text-sm font-medium text-navy transition-colors hover:border-[#c8bea9]"
+                className="rounded-full border border-[#e2dccc] px-5 py-2 text-sm font-medium text-crimson transition-colors hover:border-[#c8bea9]"
               >
                 Entrar
               </button>
               <button
                 onClick={() => handleNavigate("register")}
-                className="rounded-full bg-navy px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-navy-light"
+                className="rounded-full bg-crimson px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-crimson-mid"
               >
                 Cadastrar
               </button>
@@ -233,7 +232,7 @@ export default function Navbar({ currentPage }) {
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="Buscar livros..."
-                className="w-full rounded-2xl border border-[#e2dccc] bg-[#f8f6f1] px-4 py-3 text-sm focus:border-blue focus:bg-white focus:outline-none"
+                className="w-full rounded-2xl border border-[#e2dccc] bg-[#f8f6f1] px-4 py-3 text-sm focus:border-secondary focus:bg-white focus:outline-none"
               />
             </div>
             <nav className="space-y-2">
@@ -247,9 +246,8 @@ export default function Navbar({ currentPage }) {
                   <button
                     key={link.route}
                     onClick={() => handleNavigate(link.route)}
-                    className={`block w-full rounded-xl px-3 py-2 text-left text-sm font-medium ${
-                      active ? "bg-blue-soft text-blue" : "hover:bg-[#f6f1e7]"
-                    }`}
+                    className={`block w-full rounded-xl px-3 py-2 text-left text-sm font-medium ${active ? "bg-secondary-light text-secondary" : "hover:bg-[#f6f1e7]"
+                      }`}
                   >
                     {link.label}
                   </button>
@@ -282,7 +280,7 @@ export default function Navbar({ currentPage }) {
                   </button>
                   <button
                     onClick={() => handleNavigate("register")}
-                    className="block w-full rounded-xl bg-navy px-3 py-3 text-left text-sm font-semibold text-white"
+                    className="block w-full rounded-xl bg-crimson px-3 py-3 text-left text-sm font-semibold text-white"
                   >
                     Cadastrar
                   </button>

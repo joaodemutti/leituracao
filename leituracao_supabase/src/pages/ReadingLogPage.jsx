@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { getCurrentUser } from "../services/AuthService";
 import { searchBooks } from "../services/CatalogService";
 import {
@@ -134,23 +134,23 @@ export default function ReadingLogPage() {
     <div className="page-section">
       <div className="container grid gap-6 lg:grid-cols-[1fr_360px]">
         <section className="panel-card p-6 md:p-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Nova entrada</p>
-          <h1 className="mt-3 font-serif text-5xl text-navy">Registrar leitura</h1>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-secondary">Nova entrada</p>
+          <h1 className="mt-3 font-serif text-5xl text-crimson">Registrar leitura</h1>
 
           <form onSubmit={handleSubmit} className="mt-8 space-y-5">
             <div>
-              <label className="block text-sm font-medium text-navy">Buscar livro</label>
+              <label className="block text-sm font-medium text-crimson">Buscar livro</label>
               <div className="mt-2 flex gap-3">
                 <input
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
-                  className="flex-1 rounded-2xl border border-[#ddd5c8] px-4 py-3 focus:border-blue focus:outline-none"
+                  className="flex-1 rounded-2xl border border-[#ddd5c8] px-4 py-3 focus:border-secondary focus:outline-none"
                   placeholder="Digite o titulo ou autor..."
                 />
                 <button
                   type="button"
                   onClick={() => setIsChangingBook((value) => !value)}
-                  className="rounded-2xl bg-navy px-5 py-3 text-sm font-semibold text-white"
+                  className="rounded-2xl bg-crimson px-5 py-3 text-sm font-semibold text-white"
                 >
                   Buscar
                 </button>
@@ -174,7 +174,7 @@ export default function ReadingLogPage() {
                         {book.emoji || "Livro"}
                       </div>
                       <div>
-                        <p className="font-semibold text-navy">{book.title}</p>
+                        <p className="font-semibold text-crimson">{book.title}</p>
                         <p className="text-sm text-[#6d7b8d]">{book.author}</p>
                       </div>
                     </button>
@@ -191,10 +191,10 @@ export default function ReadingLogPage() {
                       {selectedBook.emoji || currentReading?.book?.emoji || "Livro"}
                     </div>
                     <div>
-                      <p className="font-semibold text-navy">{selectedBook.title}</p>
+                      <p className="font-semibold text-crimson">{selectedBook.title}</p>
                       <p className="text-sm text-[#6d7b8d]">{selectedBook.author}</p>
                       {currentReading?.book_id === selectedBook.id && (
-                        <p className="mt-1 text-sm font-medium text-blue">Leitura atual</p>
+                        <p className="mt-1 text-sm font-medium text-secondary">Leitura atual</p>
                       )}
                     </div>
                   </div>
@@ -210,29 +210,29 @@ export default function ReadingLogPage() {
             )}
 
             <div className="grid gap-4 md:grid-cols-2">
-              <label className="text-sm font-medium text-navy">
+              <label className="text-sm font-medium text-crimson">
                 Pagina inicial
                 <input
                   type="number"
                   min="0"
                   value={form.startPage}
                   onChange={(event) => setForm((current) => ({ ...current, startPage: event.target.value }))}
-                  className="mt-2 w-full rounded-2xl border border-[#ddd5c8] px-4 py-3 focus:border-blue focus:outline-none"
+                  className="mt-2 w-full rounded-2xl border border-[#ddd5c8] px-4 py-3 focus:border-secondary focus:outline-none"
                 />
               </label>
-              <label className="text-sm font-medium text-navy">
+              <label className="text-sm font-medium text-crimson">
                 Pagina final
                 <input
                   type="number"
                   min={form.startPage}
                   value={form.endPage}
                   onChange={(event) => setForm((current) => ({ ...current, endPage: event.target.value }))}
-                  className="mt-2 w-full rounded-2xl border border-[#ddd5c8] px-4 py-3 focus:border-blue focus:outline-none"
+                  className="mt-2 w-full rounded-2xl border border-[#ddd5c8] px-4 py-3 focus:border-secondary focus:outline-none"
                 />
               </label>
             </div>
 
-            <label className="block text-sm font-medium text-navy">
+            <label className="block text-sm font-medium text-crimson">
               Como foi essa leitura?
               <div className="mt-3 flex flex-wrap gap-2">
                 {MOODS.map((mood) => (
@@ -241,7 +241,7 @@ export default function ReadingLogPage() {
                     type="button"
                     onClick={() => setForm((current) => ({ ...current, mood: mood.id }))}
                     className={`rounded-full px-4 py-2 text-sm font-medium ${
-                      form.mood === mood.id ? "bg-navy text-white" : "bg-[#f4efe7] text-[#566477]"
+                      form.mood === mood.id ? "bg-crimson text-white" : "bg-[#f4efe7] text-[#566477]"
                     }`}
                   >
                     {mood.label}
@@ -250,17 +250,17 @@ export default function ReadingLogPage() {
               </div>
             </label>
 
-            <label className="block text-sm font-medium text-navy">
+            <label className="block text-sm font-medium text-crimson">
               Notas
               <textarea
                 value={form.note}
                 onChange={(event) => setForm((current) => ({ ...current, note: event.target.value }))}
-                className="mt-2 h-28 w-full rounded-2xl border border-[#ddd5c8] px-4 py-3 focus:border-blue focus:outline-none"
+                className="mt-2 h-28 w-full rounded-2xl border border-[#ddd5c8] px-4 py-3 focus:border-secondary focus:outline-none"
                 placeholder="O que voce achou dessa parte?"
               />
             </label>
 
-            <div className="rounded-[26px] bg-navy px-5 py-5 text-white">
+            <div className="rounded-[26px] bg-crimson px-5 py-5 text-white">
               <p className="font-semibold">Voce vai ganhar pontos</p>
               <p className="mt-2 text-white/72">
                 {xpPreview.pagesDelta} paginas lidas - humor {form.mood}
@@ -270,7 +270,7 @@ export default function ReadingLogPage() {
                 <p>{xpPreview.moodBonus} XP bonus de humor</p>
                 <p>{xpPreview.streakBonus} XP bonus de sequencia</p>
               </div>
-              <p className="mt-3 font-serif text-4xl text-gold">+{xpPreview.totalXp} XP</p>
+              <p className="mt-3 font-serif text-4xl text-secondary">+{xpPreview.totalXp} XP</p>
             </div>
 
             {feedback && (
@@ -289,14 +289,14 @@ export default function ReadingLogPage() {
                 onClick={() => {
                   window.location.hash = "home";
                 }}
-                className="rounded-full border border-[#d7cebf] px-5 py-3 text-sm font-semibold text-navy"
+                className="rounded-full border border-[#d7cebf] px-5 py-3 text-sm font-semibold text-crimson"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
                 disabled={!selectedBook}
-                className="rounded-full bg-navy px-5 py-3 text-sm font-semibold text-white disabled:opacity-55"
+                className="rounded-full bg-crimson px-5 py-3 text-sm font-semibold text-white disabled:opacity-55"
               >
                 Registrar leitura
               </button>
@@ -305,7 +305,7 @@ export default function ReadingLogPage() {
         </section>
 
         <aside className="panel-card p-6">
-          <h2 className="font-serif text-4xl text-navy">Historico recente</h2>
+          <h2 className="font-serif text-4xl text-crimson">Historico recente</h2>
           <div className="mt-5 space-y-3">
             {history.length === 0 && (
               <p className="rounded-[22px] bg-[#fbf8f2] px-4 py-4 text-sm text-[#687789]">
@@ -314,7 +314,7 @@ export default function ReadingLogPage() {
             )}
             {history.map((entry) => (
               <article key={entry.id} className="rounded-[22px] bg-[#fbf8f2] px-4 py-4">
-                <p className="font-semibold text-navy">{entry.book?.title}</p>
+                <p className="font-semibold text-crimson">{entry.book?.title}</p>
                 <p className="text-sm text-[#687789]">
                   Pag. {entry.startPage || 0} - {entry.endPage || 0} - {entry.date}
                 </p>

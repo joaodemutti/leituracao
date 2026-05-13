@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import BookCard from "../components/BookCard";
 import { getCategoryByRoute, listBooksByCategory } from "../services/CatalogService";
 
@@ -64,7 +64,7 @@ export default function CategoryPage({ category }) {
       <div className="page-section">
         <div className="container flex items-center justify-center">
           <div className="panel-card max-w-[560px] px-8 py-12 text-center">
-            <h1 className="font-serif text-4xl text-navy">Categoria nao encontrada</h1>
+            <h1 className="font-serif text-4xl text-crimson">Categoria nao encontrada</h1>
             <p className="mt-4 text-[#607082]">{error}</p>
           </div>
         </div>
@@ -84,8 +84,8 @@ export default function CategoryPage({ category }) {
                     {categoryData.emoji}
                   </div>
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Categoria</p>
-                    <h1 className="font-serif text-5xl text-navy">{categoryData.label}</h1>
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-secondary">Categoria</p>
+                    <h1 className="font-serif text-5xl text-crimson">{categoryData.label}</h1>
                   </div>
                 </div>
                 <p className="mt-5 max-w-[760px] text-[#5e6b7c]">{categoryData.desc}</p>
@@ -96,8 +96,8 @@ export default function CategoryPage({ category }) {
                   [categoryData.stats.free || 0, "Gratis"],
                   [categoryData.stats.authors || 0, "Autores"],
                 ].map(([value, label]) => (
-                  <article key={label} className="rounded-[20px] border border-white/60 bg-white/80 px-3 py-4">
-                    <p className="font-serif text-3xl text-navy">{value}</p>
+                  <article key={label} className="rounded-[20px] border border-white/200 bg-white/100 px-3 py-4">
+                    <p className="font-serif text-3xl text-crimson">{value}</p>
                     <p className="mt-1 text-[10px] uppercase tracking-[0.18em] text-[#7a8797]">{label}</p>
                   </article>
                 ))}
@@ -113,7 +113,7 @@ export default function CategoryPage({ category }) {
                       onClick={() => setSelectedFilter(filter)}
                       className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
                         selectedFilter === filter
-                          ? "bg-navy text-white"
+                          ? "bg-crimson text-white"
                           : "bg-[#f6f1e7] text-[#526071] hover:bg-[#eee6d8]"
                       }`}
                     >

@@ -4,15 +4,14 @@ export default {
   theme: {
     extend: {
       colors: {
-        navy: "#0B1F3A",
-        "navy-mid": "#122845",
-        "navy-light": "#1C3A5E",
-        blue: "#1A5FA8",
-        "blue-soft": "#EBF2FB",
+        crimson: "#E3000F",
+        "crimson-light": "#FFCBBF",
+        "crimson-dark": "#6E160C",
+        "crimson-mid": "#C20009",
         cream: "#F9F6F1",
         "cream-dark": "#EDE9E2",
-        gold: "#B8832A",
-        "gold-light": "#F7EDD8",
+        secondary: "#EF6B00",
+        "secondary-light": "#FEF0E0",
       },
       fontFamily: {
         serif: ["Cormorant Garamond", "serif"],

@@ -80,6 +80,14 @@ img {
 }
 
 @layer utilities {
+  .text-crimson {
+    font-weight: 700;
+  }
+
+  .text-secondary {
+    font-weight: 700;
+  }
+
   .text-balance {
     text-wrap: balance;
   }

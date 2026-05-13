@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { getCurrentUser } from "../services/AuthService";
 import { getProgressSnapshot } from "../services/ExperienceService";
 
@@ -45,11 +45,11 @@ export default function ProgressPage() {
   return (
     <div className="page-section">
       <div className="container space-y-7">
-        <section className="hero-shadow overflow-hidden rounded-[34px] bg-navy px-6 py-10 text-white md:px-10">
+        <section className="hero-shadow overflow-hidden rounded-[34px] bg-crimson-dark px-6 py-10 text-white md:px-10">
           <div className="grid gap-6 lg:grid-cols-[180px_1fr_180px] lg:items-center">
-            <div className="mx-auto flex h-[132px] w-[132px] items-center justify-center rounded-full border-4 border-gold text-center">
+            <div className="mx-auto flex h-[132px] w-[132px] items-center justify-center rounded-full border-4 border-secondary text-center">
               <div>
-                <p className="font-serif text-5xl text-gold">{snapshot.level}</p>
+                <p className="font-serif text-5xl text-secondary">{snapshot.level}</p>
                 <p className="text-xs uppercase tracking-[0.18em] text-white/58">Nivel</p>
               </div>
             </div>
@@ -59,13 +59,13 @@ export default function ProgressPage() {
                 Voce esta no caminho certo. Mais {1000 - (snapshot.totalXp % 1000)} XP para o proximo nivel.
               </p>
               <div className="mt-5 h-2.5 rounded-full bg-white/10">
-                <div className="h-full rounded-full bg-gold" style={{ width: `${levelProgress}%` }} />
+                <div className="h-full rounded-full bg-secondary" style={{ width: `${levelProgress}%` }} />
               </div>
               <p className="mt-2 text-sm text-white/60">{snapshot.totalXp} XP acumulado</p>
             </div>
             <div className="text-center lg:text-right">
               <p className="text-xs uppercase tracking-[0.18em] text-white/55">Total de XP</p>
-              <p className="mt-2 font-serif text-5xl text-gold">{snapshot.totalXp}</p>
+              <p className="mt-2 font-serif text-5xl text-secondary">{snapshot.totalXp}</p>
             </div>
           </div>
         </section>
@@ -73,18 +73,18 @@ export default function ProgressPage() {
         <section className="panel-card p-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Sequencia atual</p>
-              <h2 className="mt-3 font-serif text-4xl text-navy">{snapshot.currentStreak} dias seguidos</h2>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-secondary">Sequencia atual</p>
+              <h2 className="mt-3 font-serif text-4xl text-crimson">{snapshot.currentStreak} dias seguidos</h2>
             </div>
             <div className="text-right">
               <p className="text-sm text-[#728093]">Recorde pessoal</p>
-              <p className="mt-1 font-serif text-3xl text-navy">{snapshot.bestStreak} dias</p>
+              <p className="mt-1 font-serif text-3xl text-crimson">{snapshot.bestStreak} dias</p>
             </div>
           </div>
           <div className="mt-6 flex flex-wrap gap-4">
             {days.map((day, index) => (
               <div key={`${day.label}-${index}`} className="text-center">
-                <div className={`flex h-12 w-12 items-center justify-center rounded-full text-sm font-semibold ${day.active ? "bg-navy text-white" : "bg-[#efe7d8] text-[#7c8795]"}`}>
+                <div className={`flex h-12 w-12 items-center justify-center rounded-full text-sm font-semibold ${day.active ? "bg-crimson text-white" : "bg-[#efe7d8] text-[#7c8795]"}`}>
                   {day.label}
                 </div>
                 <p className="mt-2 text-xs text-[#7a8898]">{day.number}</p>
@@ -101,7 +101,7 @@ export default function ProgressPage() {
             ["Quizzes concluidos", snapshot.quizSummary?.sessionsCount || 0],
           ].map(([label, value]) => (
             <article key={label} className="panel-card px-5 py-6">
-              <p className="font-serif text-4xl text-navy">{value}</p>
+              <p className="font-serif text-4xl text-crimson">{value}</p>
               <p className="mt-2 text-xs uppercase tracking-[0.18em] text-[#8491a1]">{label}</p>
             </article>
           ))}
@@ -109,12 +109,12 @@ export default function ProgressPage() {
 
         <section className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
           <article className="panel-card p-6">
-            <h2 className="font-serif text-4xl text-navy">Conquistas</h2>
+            <h2 className="font-serif text-4xl text-crimson">Conquistas</h2>
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
               {snapshot.achievements.map((achievement) => (
                 <article key={achievement.achievement_id || achievement.id} className="rounded-[22px] border border-[#eee6da] bg-[#fcfaf5] px-4 py-4">
                   <p className="text-2xl">{achievement.icon || "*"}</p>
-                  <p className="mt-2 font-semibold text-navy">{achievement.title}</p>
+                  <p className="mt-2 font-semibold text-crimson">{achievement.title}</p>
                   <p className="mt-2 text-sm text-[#667486]">{achievement.description}</p>
                   <p className="mt-3 text-xs uppercase tracking-[0.16em] text-[#8491a1]">
                     {achievement.earned_at?.split?.("T")?.[0] || "Conquista ativa"}
@@ -125,12 +125,12 @@ export default function ProgressPage() {
           </article>
 
           <article className="panel-card p-6">
-            <h2 className="font-serif text-4xl text-navy">Historico de XP</h2>
+            <h2 className="font-serif text-4xl text-crimson">Historico de XP</h2>
             <div className="mt-5 space-y-3">
               {snapshot.timeline.map((session) => (
                 <div key={session.id} className="flex flex-wrap items-center justify-between gap-3 rounded-[22px] bg-[#fbf8f2] px-4 py-4">
                   <div>
-                    <p className="font-semibold text-navy">
+                    <p className="font-semibold text-crimson">
                       {session.book?.title || "Sessao de leitura"} - {session.pages} paginas
                     </p>
                     <p className="text-sm text-[#657385]">{session.date}</p>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { loginUser, loginWithOAuth, requestPasswordReset } from "../services/AuthService";
 
 export default function LoginPage() {
@@ -48,8 +48,8 @@ export default function LoginPage() {
     <div className="page-section">
       <div className="container flex items-center justify-center">
         <div className="soft-shadow grid w-full max-w-[980px] overflow-hidden rounded-[34px] border border-[#e8dfcf] bg-white lg:grid-cols-[0.92fr_1.08fr]">
-          <section className="bg-navy px-7 py-10 text-white md:px-10 lg:min-h-[640px]">
-            <div className="inline-flex rounded-full border border-white/10 bg-white/8 px-4 py-2 text-xs uppercase tracking-[0.18em] text-gold">
+          <section className="bg-crimson-dark px-7 py-10 text-white md:px-10 lg:min-h-[640px]">
+            <div className="font-bold shadow-[inset_0_0_0_1px_rgba(26,95,168,0.08)] inline-flex rounded-full text-secondary bg-secondary-light px-4 py-2 text-xs uppercase tracking-[0.18em]">
               Bem-vindo de volta
             </div>
             <h1 className="mt-6 font-serif text-5xl leading-none">Entre na LeiturAcao</h1>
@@ -59,19 +59,19 @@ export default function LoginPage() {
             <div className="mt-8 grid gap-4 sm:grid-cols-2">
               <button
                 onClick={() => handleOAuth("google")}
-                className="rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-medium text-white/75"
+                className="rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-sm font-medium text-white/75"
               >
                 Google
               </button>
               <button
                 onClick={() => handleOAuth("facebook")}
-                className="rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-medium text-white/75"
+                className="rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-sm font-medium text-white/75"
               >
                 Facebook
               </button>
             </div>
-            <div className="mt-12 rounded-[26px] border border-white/10 bg-white/6 p-5">
-              <p className="text-sm font-semibold uppercase tracking-[0.16em] text-gold">Leitura com continuidade</p>
+            <div className="mt-12 rounded-[26px] border border-white/20 bg-white/10 p-5">
+              <p className="text-sm font-semibold uppercase tracking-[0.16em] text-secondary">Leitura com continuidade</p>
               <p className="mt-3 text-sm text-white/70">
                 Seu progresso, metas e ranking ficam sincronizados na sua conta.
               </p>
@@ -80,14 +80,14 @@ export default function LoginPage() {
 
           <section className="px-7 py-10 md:px-10 lg:py-14">
             <div className="mx-auto w-full max-w-[420px]">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Entrar com e-mail</p>
-              <h2 className="mt-3 font-serif text-4xl text-navy">Acesse sua conta</h2>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-secondary">Entrar com e-mail</p>
+              <h2 className="mt-3 font-serif text-4xl text-crimson">Acesse sua conta</h2>
               <p className="mt-3 text-sm text-[#5e6b7c]">
                 Continue de onde voce parou e mantenha sua evolucao registrada.
               </p>
 
               {showConfirmNotice && (
-                <div className="mt-6 rounded-[20px] border border-[#d6e4f7] bg-[#eef5ff] px-4 py-3 text-sm text-blue">
+                <div className="mt-6 rounded-[20px] border border-[#d6e4f7] bg-[#eef5ff] px-4 py-3 text-sm text-secondary">
                   Conta criada. Verifique seu e-mail para confirmar o cadastro antes de entrar.
                 </div>
               )}
@@ -105,25 +105,25 @@ export default function LoginPage() {
               )}
 
               <form onSubmit={handleSubmit} className="mt-8 space-y-5">
-                <label className="block text-sm font-medium text-navy">
+                <label className="block text-sm font-medium text-crimson">
                   E-mail
                   <input
                     type="email"
                     value={email}
                     onChange={(event) => setEmail(event.target.value)}
-                    className="mt-2 w-full rounded-2xl border border-[#ddd5c8] px-4 py-3 focus:border-blue focus:outline-none"
+                    className="mt-2 w-full rounded-2xl border border-[#ddd5c8] px-4 py-3 focus:border-secondary focus:outline-none"
                     placeholder="seu@email.com"
                     required
                   />
                 </label>
 
-                <label className="block text-sm font-medium text-navy">
+                <label className="block text-sm font-medium text-crimson">
                   Senha
                   <input
                     type="password"
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
-                    className="mt-2 w-full rounded-2xl border border-[#ddd5c8] px-4 py-3 focus:border-blue focus:outline-none"
+                    className="mt-2 w-full rounded-2xl border border-[#ddd5c8] px-4 py-3 focus:border-secondary focus:outline-none"
                     placeholder="Sua senha"
                     required
                   />
@@ -133,7 +133,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={handlePasswordReset}
-                    className="text-sm font-medium text-blue"
+                    className="text-sm !font-semibold hover:!font-bold text-secondary"
                   >
                     Esqueceu a senha?
                   </button>
@@ -142,7 +142,7 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full rounded-full bg-navy px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-navy-light disabled:opacity-60"
+                  className="w-full rounded-full bg-crimson px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-crimson-mid disabled:opacity-60"
                 >
                   {loading ? "Entrando..." : "Entrar"}
                 </button>
@@ -154,7 +154,7 @@ export default function LoginPage() {
                   onClick={() => {
                     window.location.hash = "register";
                   }}
-                  className="font-semibold text-blue"
+                  className="!font-semibold hover:!font-bold text-secondary"
                 >
                   Cadastre-se gratuitamente
                 </button>

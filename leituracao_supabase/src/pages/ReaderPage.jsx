@@ -1,4 +1,4 @@
-import {
+﻿import {
   Suspense,
   lazy,
   useCallback,
@@ -235,27 +235,41 @@ export default function ReaderPage() {
         Math.round((Date.now() - lastSaveTimestampRef.current) / 60000)
       );
 
-      const pagesDelta = currentPage
-        ? Math.max(0, currentPage - (lastSavedPageRef.current || 0))
-        : 0;
+      const isEpub = readerSource?.type === "epub";
+
+      const computedProgress = isEpub
+        ? calculateChapterProgress({
+          currentChapter: readerMetrics.currentChapter,
+          totalChapters: readerMetrics.totalChapters,
+          chapterPage: readerMetrics.chapterPage,
+          chapterTotalPages: readerMetrics.chapterTotalPages,
+        })
+        : progress?.completion_percentage;
+
+      // For epub, derive an absolute page from chapter-progress × estimatedPages.
+      // Use ceil so even 0.x% → at least 1 page; use a generous fallback (300)
+      // so small fractional progress doesn't collapse to 0 when estimatedPages is unset.
+      const estimatedTotal = book.estimatedPages || 300;
+      const absolutePage = isEpub
+        ? (computedProgress > 0 ? Math.max(1, Math.ceil((computedProgress / 100) * estimatedTotal)) : 0)
+        : currentPage;
+
+      const pagesDelta = Math.max(0, (absolutePage || 0) - (lastSavedPageRef.current || 0));
+
+      // Skip autosaves that recorded no new pages — avoids "+0 XP" session spam.
+      if (pagesDelta === 0 && !forceFinish) {
+        lastSaveTimestampRef.current = Date.now();
+        return;
+      }
 
       setSaving(true);
 
-      const computedProgress =
-        readerSource?.type === "epub"
-          ? calculateChapterProgress({
-            currentChapter: readerMetrics.currentChapter,
-            totalChapters: readerMetrics.totalChapters,
-            chapterPage: readerMetrics.chapterPage,
-            chapterTotalPages: readerMetrics.chapterTotalPages,
-          })
-          : progress?.completion_percentage;
       const saveResult = forceFinish
         ? await finishReading(
           user.id,
           book.id,
           nextLocation,
-          currentPage,
+          absolutePage,
           totalPages,
           minutesSpent,
           computedProgress
@@ -264,7 +278,7 @@ export default function ReaderPage() {
           user.id,
           book.id,
           nextLocation,
-          currentPage,
+          absolutePage,
           totalPages,
           minutesSpent,
           pagesDelta,
@@ -278,7 +292,7 @@ export default function ReaderPage() {
         return;
       }
 
-      lastSavedPageRef.current = currentPage || lastSavedPageRef.current;
+      lastSavedPageRef.current = absolutePage || lastSavedPageRef.current;
       lastSaveTimestampRef.current = Date.now();
 
       setProgress(saveResult.data);
@@ -315,42 +329,37 @@ export default function ReaderPage() {
   if (!book || !readerSource) return null;
 
   return (
-    <div className="h-screen bg-[#0f172a] text-white flex flex-col">
+    <div className="h-screen bg-cream flex flex-col">
 
       {/* HEADER */}
-      <div className="border-b border-white/10 px-4 py-3 flex justify-between">
+      <div className="bg-crimson border-b border-white/10 px-4 py-3 flex justify-between items-center gap-4">
 
-        <div>
-          <h1 className="text-xl font-bold">{book.title}</h1>
-          <p className="text-sm text-white/70">{book.author}</p>
+        <div className="min-w-0">
+          <h1 className="text-base font-semibold text-white truncate">{book.title}</h1>
+          <p className="text-xs text-white/75">{book.author}</p>
         </div>
 
-        <div className="flex items-center gap-3 text-sm text-white/80">
+        <div className="flex items-center gap-4 text-sm text-white shrink-0">
 
-          <span>
+          <span className="hidden sm:inline">
             {readerSource?.type === "epub" ? (
               <>
-                Chapter {readerMetrics.currentChapter} / {readerMetrics.totalChapters}
+                Capítulo {readerMetrics.currentChapter} / {readerMetrics.totalChapters}
                 {" — "}
-                Page {readerMetrics.chapterPage} / {readerMetrics.chapterTotalPages}
+                Pág. {readerMetrics.chapterPage} / {readerMetrics.chapterTotalPages}
               </>
             ) : (
               <>
-                {readerMetrics.currentPage || progress?.current_page || 0} /{" "}
+                Pág. {readerMetrics.currentPage || progress?.current_page || 0} /{" "}
                 {readerMetrics.totalPages || progress?.estimated_pages || 0}
               </>
             )}
           </span>
 
-          <span>
+          <span className="hidden sm:inline shadow-[inset_0_0_0_1px_rgba(26,95,168,0.08)] py-0.5 px-1.5 text-secondary bg-secondary-light font-bold rounded-xl">
             {readerSource?.type === "epub"
-              ? (
-                epubReady
-                  ? calculateChapterProgress(readerMetrics)
-                  : progress?.completion_percentage || 0
-              )
-              : progress?.completion_percentage || 0}
-            % concluido
+              ? (epubReady ? calculateChapterProgress(readerMetrics) : progress?.completion_percentage || 0)
+              : progress?.completion_percentage || 0}%
           </span>
 
           <button
@@ -358,12 +367,12 @@ export default function ReaderPage() {
               await persistProgress(location, true);
               window.location.hash = book.categoryId || "acervo";
             }}
-            className="px-4 py-2 rounded-full bg-gold text-navy font-semibold"
+            className="rounded-full bg-secondary px-4 py-2 text-sm font-semibold text-white hover:bg-[#d45f00] transition-colors"
           >
             Concluir leitura
           </button>
 
-          <span className="text-xs text-white/50 w-[80px] inline-block text-center">
+          <span className="text-xs text-white/75 w-[52px] text-center hidden md:inline-block">
             {saving ? "Salvando..." : "Salvo"}
           </span>
 
@@ -371,8 +380,8 @@ export default function ReaderPage() {
       </div>
 
       {/* READER */}
-      <div className="flex-1">
-        <Suspense fallback={<div>Carregando...</div>}>
+      <div className="flex-1 overflow-hidden">
+        <Suspense fallback={<div className="h-full flex items-center justify-center text-[#64748b]">Carregando...</div>}>
 
           {readerSource?.type === "epub" ? (
             <ReactReader

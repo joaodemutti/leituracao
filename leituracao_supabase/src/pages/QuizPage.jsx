@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import { getCurrentUser } from "../services/AuthService";
 import { completeQuizSession, getQuizQuestions } from "../services/ExperienceService";
 
@@ -146,8 +146,8 @@ export default function QuizPage() {
       <div className="page-section">
         <div className="container">
           <div className="panel-card mx-auto max-w-[760px] px-8 py-12 text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Quiz indisponivel</p>
-            <h1 className="mt-4 font-serif text-4xl text-navy">Nenhum quiz ativo foi encontrado.</h1>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-secondary">Quiz indisponivel</p>
+            <h1 className="mt-4 font-serif text-4xl text-crimson">Nenhum quiz ativo foi encontrado.</h1>
             <p className="mt-4 text-[#64748b]">
               Cadastre um conjunto de perguntas no banco para liberar esta experiencia.
             </p>
@@ -162,12 +162,12 @@ export default function QuizPage() {
       <div className="container space-y-6">
         <section className="mx-auto max-w-[860px] panel-card p-6 md:p-8">
           <div className="h-2 rounded-full bg-[#ece5d8]">
-            <div className="h-full rounded-full bg-navy" style={{ width: `${progress}%` }} />
+            <div className="h-full rounded-full bg-crimson" style={{ width: `${progress}%` }} />
           </div>
 
           <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-secondary">
                 {quizSet?.sourceBookTitle || quizSet?.title || "Quiz"}
               </p>
               <p className="mt-2 text-sm text-[#6b798b]">{progressText}</p>
@@ -177,7 +177,7 @@ export default function QuizPage() {
             </div>
           </div>
 
-          <h1 className="mt-8 font-serif text-4xl leading-tight text-navy">{currentQuestion.prompt}</h1>
+          <h1 className="mt-8 font-serif text-4xl leading-tight text-crimson">{currentQuestion.prompt}</h1>
 
           <div className="mt-8 space-y-3">
             {currentQuestion.options.map((option, index) => {
@@ -197,10 +197,10 @@ export default function QuizPage() {
                         : "border-[#e6dece] bg-white hover:bg-[#faf7f1]"
                   }`}
                 >
-                  <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#f4efe6] text-sm font-semibold text-navy">
+                  <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#f4efe6] text-sm font-semibold text-crimson">
                     {String.fromCharCode(65 + index)}
                   </span>
-                  <span className="text-base leading-7 text-navy">{option.text}</span>
+                  <span className="text-base leading-7 text-crimson">{option.text}</span>
                 </button>
               );
             })}
@@ -208,14 +208,14 @@ export default function QuizPage() {
 
           {showFeedback && (
             <div className={`mt-6 rounded-[24px] px-5 py-5 ${isCorrect ? "bg-[#dcf8e8]" : "bg-[#fff4e8]"}`}>
-              <p className="font-semibold text-navy">{isCorrect ? "Correto!" : "Resposta incorreta"}</p>
+              <p className="font-semibold text-crimson">{isCorrect ? "Correto!" : "Resposta incorreta"}</p>
               <p className="mt-2 text-sm leading-6 text-[#425163]">{currentQuestion.explanation}</p>
               {isCorrect && (
                 <p className="mt-3 text-sm font-semibold text-[#1f7a42]">+{currentQuestion.xpReward} XP</p>
               )}
               {!isCorrect && selectedOption && (
                 <p className="mt-3 text-sm text-[#6b798b]">
-                  Sua resposta: <span className="font-semibold text-navy">{selectedOption.text}</span>
+                  Sua resposta: <span className="font-semibold text-crimson">{selectedOption.text}</span>
                 </p>
               )}
             </div>
@@ -223,12 +223,12 @@ export default function QuizPage() {
 
           <div className="mt-8 flex items-center justify-between gap-3">
             <p className="text-sm text-[#687789]">
-              Acertos: <span className="font-semibold text-navy">{correctCount}</span> / {questions.length}
+              Acertos: <span className="font-semibold text-crimson">{correctCount}</span> / {questions.length}
             </p>
             <button
               onClick={handleNext}
               disabled={!showFeedback || saving}
-              className="rounded-full bg-navy px-6 py-3 text-sm font-semibold text-white disabled:opacity-50"
+              className="rounded-full bg-crimson px-6 py-3 text-sm font-semibold text-white disabled:opacity-50"
             >
               {saving ? "Salvando..." : currentIndex >= questions.length - 1 ? "Finalizar" : "Proxima"}
             </button>
@@ -242,7 +242,7 @@ export default function QuizPage() {
             [Math.max(0, questions.length - answeredCount), "Restantes"],
           ].map(([value, label]) => (
             <article key={label} className="panel-card px-5 py-6 text-center">
-              <p className="font-serif text-4xl text-navy">{value}</p>
+              <p className="font-serif text-4xl text-crimson">{value}</p>
               <p className="mt-2 text-xs uppercase tracking-[0.18em] text-[#8491a1]">{label}</p>
             </article>
           ))}
