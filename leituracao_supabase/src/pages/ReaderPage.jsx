@@ -101,7 +101,6 @@ function parsePdfPage(location) {
 ========================= */
 
 export default function ReaderPage() {
-  const [epubReady, setEpubReady] = useState(false);
   const [user, setUser] = useState(null);
   const [book, setBook] = useState(null);
   const [progress, setProgress] = useState(null);
@@ -120,13 +119,7 @@ export default function ReaderPage() {
   const lastSaveTimestampRef = useRef(Date.now());
   const hasInitializedReaderRef = useRef(false);
   const bookId = useMemo(() => getHashParams().get("book"), []);
-  const chapterPagesRef = useRef(
-    JSON.parse(localStorage.getItem(`chapterPages_${bookId}`) || "{}")
-  );
-
-  const readerLabel =
-    readerSource?.type === "pdf" ? "Leitor PDF" : "Leitor EPUB";
-
+  const chapterPagesRef = useRef({});
   /* =========================
     LOAD
   ========================= */
@@ -376,7 +369,7 @@ export default function ReaderPage() {
       </div>
 
       {/* READER */}
-      <div ref={readerContainerRef} className="flex-1 overflow-hidden">
+      <div ref={readerContainerRef} className="flex-1 overflow-auto">
         <Suspense fallback={<div className="h-full flex items-center justify-center text-[#64748b]">Carregando...</div>}>
 
           {readerSource?.type === "epub" ? (
@@ -386,7 +379,6 @@ export default function ReaderPage() {
               onRendition={(r) => { renditionRef.current = r; }}
               onReady={(total) => {
                 setReaderMetrics((prev) => ({ ...prev, totalPages: total }));
-                setEpubReady(true);
               }}
               onLocationChange={(loc, spine = []) => {
                 if (!loc?.start) return;
@@ -397,19 +389,18 @@ export default function ReaderPage() {
                 const chapterTotalPages = loc.start.displayed?.total ?? 1;
 
                 chapterPagesRef.current[chapterIdx] = chapterTotalPages;
-                localStorage.setItem(`chapterPages_${bookId}`, JSON.stringify(chapterPagesRef.current));
 
-                const contentChapters = Object.values(chapterPagesRef.current).filter(p => p > 3);
-                const fallback = contentChapters.length > 0
-                  ? Math.round(contentChapters.reduce((s, p) => s + p, 0) / contentChapters.length)
-                  : Math.round((book.estimatedPages || 300) / Math.max(1, spine.length));
+                const known = Object.values(chapterPagesRef.current);
+                const avg = known.length > 0
+                  ? Math.round(known.reduce((s, p) => s + p, 0) / known.length)
+                  : 10;
 
                 let completedPages = 0;
-                let totalDisplayPages = 0;
+                let totalPages = 0;
                 for (let i = 0; i < spine.length; i++) {
-                  const pages = chapterPagesRef.current[i] || fallback;
+                  const pages = chapterPagesRef.current[i] ?? avg;
                   if (i < chapterIdx) completedPages += pages;
-                  totalDisplayPages += pages;
+                  totalPages += pages;
                 }
 
                 setReaderMetrics((prev) => ({
@@ -419,7 +410,7 @@ export default function ReaderPage() {
                   chapterPage,
                   chapterTotalPages,
                   absolutePage: completedPages + chapterPage,
-                  totalPages: totalDisplayPages,
+                  totalPages,
                 }));
               }}
             />
