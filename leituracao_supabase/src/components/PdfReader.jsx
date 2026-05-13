@@ -18,7 +18,7 @@ export default function PdfReader({ fileUrl, initialPage = 1, onDocumentReady, o
   const containerRef = useRef(null);
   const [numPages, setNumPages] = useState(null);
   const [pageNumber, setPageNumber] = useState(Math.max(1, Number(initialPage) || 1));
-  const [pageWidth, setPageWidth] = useState(720);
+  const [containerSize, setContainerSize] = useState({ width: 720, height: 900 });
   const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
@@ -32,15 +32,17 @@ export default function PdfReader({ fileUrl, initialPage = 1, onDocumentReady, o
   useEffect(() => {
     if (!containerRef.current) return undefined;
 
-    const updateWidth = () => {
+    const updateSize = () => {
       if (!containerRef.current) return;
-      const nextWidth = Math.max(280, Math.floor(containerRef.current.clientWidth - 32));
-      setPageWidth(nextWidth);
+      setContainerSize({
+        width: Math.max(280, Math.floor(containerRef.current.clientWidth - 32)),
+        height: Math.max(400, Math.floor(containerRef.current.clientHeight - 32)),
+      });
     };
 
-    updateWidth();
+    updateSize();
 
-    const observer = new ResizeObserver(updateWidth);
+    const observer = new ResizeObserver(updateSize);
     observer.observe(containerRef.current);
 
     return () => observer.disconnect();
@@ -88,34 +90,34 @@ export default function PdfReader({ fileUrl, initialPage = 1, onDocumentReady, o
         </div>
       </div>
 
-      <div ref={containerRef} className="flex-1 overflow-auto p-4 md:p-6 bg-[#f0ece4]">
+      <div ref={containerRef} className="flex-1 overflow-hidden flex items-center justify-center p-4 bg-[#f0ece4]">
         <Document
           file={fileUrl}
           onLoadSuccess={handleDocumentLoadSuccess}
           onLoadError={(error) => setLoadError(error.message || "Nao foi possivel carregar o PDF.")}
           loading={
-            <div className="min-h-[60vh] flex items-center justify-center text-[#64748b]">
+            <div className="flex items-center justify-center text-[#64748b]">
               Carregando PDF...
             </div>
           }
           error={
-            <div className="min-h-[60vh] flex items-center justify-center text-center text-red-600 px-4">
+            <div className="flex items-center justify-center text-center text-red-600 px-4">
               {loadError || "Nao foi possivel carregar o PDF."}
             </div>
           }
-          className="mx-auto w-fit"
         >
           <Page
             pageNumber={pageNumber}
-            width={pageWidth}
+            height={containerSize.height}
+            width={undefined}
             renderAnnotationLayer
             renderTextLayer
             loading={
-              <div className="min-h-[60vh] flex items-center justify-center text-[#64748b]">
+              <div className="flex items-center justify-center text-[#64748b]">
                 Carregando página...
               </div>
             }
-            className="shadow-2xl"
+            className="shadow-2xl max-w-full"
           />
         </Document>
       </div>

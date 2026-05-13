@@ -176,11 +176,6 @@ async function awardBookCompletion(userId, bookId) {
   return data;
 }
 
-async function getStoredEstimatedPages(bookId) {
-  const bookResult = await getBookById(bookId);
-  if (bookResult.error) return null;
-  return bookResult.data.estimatedPages || null;
-}
 
 export async function startReading(userId, bookId, initialLocation = null, estimatedPages = null) {
   const { data: existing, error: existingError } = await supabase
@@ -198,7 +193,7 @@ export async function startReading(userId, bookId, initialLocation = null, estim
     return { data: existing };
   }
 
-  const fallbackEstimatedPages = estimatedPages ?? (await getStoredEstimatedPages(bookId));
+  const fallbackEstimatedPages = estimatedPages;
 
   const { data, error } = await supabase
     .from("progresso_leitura")
@@ -231,7 +226,7 @@ export async function saveReadingPosition(
 
   const previousProgress = startResult.data;
   const effectiveEstimatedPages =
-    estimatedPages ?? previousProgress.estimated_pages ?? (await getStoredEstimatedPages(bookId));
+    estimatedPages ?? previousProgress.estimated_pages;
   const effectiveCurrentPage = currentPageApprox ?? previousProgress.current_page;
   const completionPercentage =
     completionOverride != null

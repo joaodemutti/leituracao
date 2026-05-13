@@ -18,7 +18,7 @@ export default function EpubReader({ url, initialLocation, onLocationChange, onR
     const rendition = book.renderTo(containerRef.current, {
       width: "100%",
       height: "100%",
-      spread: "auto",
+      spread: "none",
       flow: "paginated",
     });
     renditionRef.current = rendition;
