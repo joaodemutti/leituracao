@@ -179,10 +179,10 @@ export default function HomePage() {
         <section className="overflow-hidden rounded-[34px] bg-crimson-dark text-white hero-shadow">
           <div className="grid gap-6 px-6 py-8 md:px-10 md:py-10 lg:grid-cols-[1fr_220px] lg:items-center">
             <div>
-              <p className="text-sm text-white/68">Bom dia, {user.name?.split(" ")[0] || user.username}</p>
+              <p className="text-sm text-white/68">☀️ Bom dia, {user.name?.split(" ")[0] || user.username}</p>
               <h1 className="mt-3 font-serif text-4xl text-white md:text-5xl">Continue sua jornada de leitura</h1>
               <div className="mt-5 inline-flex rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm text-secondary">
-                {stats?.current_streak || 0} dias seguidos sem perder sua sequencia
+                🔥 {stats?.current_streak || 0} dias seguidos — nao perca sua sequencia!
               </div>
               <div className="mt-6 max-w-[430px]">
                 <div className="h-2 rounded-full bg-white/10">
@@ -207,14 +207,15 @@ export default function HomePage() {
 
         <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           {[
-            ["Livros lidos", stats?.total_books_read || 0],
-            ["Pontos XP", stats?.xp_points || 0],
-            ["Dias seguidos", stats?.current_streak || 0],
-            ["Ranking", currentRank ? `${currentRank}o` : "--"],
-            ["Metas ativas", `${goalSummary?.activeCount || 0}/${(goalSummary?.activeCount || 0) + (goalSummary?.completedCount || 0)}`],
-          ].map(([label, value]) => (
+            ["📚", "Livros lidos", stats?.total_books_read || 0],
+            ["⭐", "Pontos XP", stats?.xp_points || 0],
+            ["🔥", "Dias seguidos", stats?.current_streak || 0],
+            ["🏆", "Ranking", currentRank ? `${currentRank}o` : "--"],
+            ["🎯", "Metas ativas", `${goalSummary?.activeCount || 0}/${(goalSummary?.activeCount || 0) + (goalSummary?.completedCount || 0)}`],
+          ].map(([emoji, label, value]) => (
             <article key={label} className="panel-card p-6">
-              <p className="font-serif text-4xl text-crimson">{value}</p>
+              <p className="text-3xl">{emoji}</p>
+              <p className="mt-3 font-serif text-4xl text-crimson">{value}</p>
               <p className="mt-2 text-xs uppercase tracking-[0.18em] text-[#7a8797]">{label}</p>
             </article>
           ))}

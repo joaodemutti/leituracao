@@ -16,9 +16,8 @@ import {
   startReading,
   saveReadingPosition,
 } from "../services/ReadingService";
-import { ReactReader } from "react-reader";
-
 const PdfReader = lazy(() => import("../components/PdfReader.jsx"));
+const EpubReader = lazy(() => import("../components/EpubReader.jsx"));
 const PDF_LOCATION_PREFIX = "pdf-page:";
 
 /* =========================
@@ -116,11 +115,14 @@ export default function ReaderPage() {
   const [readerMetrics, setReaderMetrics] = useState({});
 
   const renditionRef = useRef(null);
+  const readerContainerRef = useRef(null);
   const lastSavedPageRef = useRef(0);
   const lastSaveTimestampRef = useRef(Date.now());
   const hasInitializedReaderRef = useRef(false);
-
   const bookId = useMemo(() => getHashParams().get("book"), []);
+  const chapterPagesRef = useRef(
+    JSON.parse(localStorage.getItem(`chapterPages_${bookId}`) || "{}")
+  );
 
   const readerLabel =
     readerSource?.type === "pdf" ? "Leitor PDF" : "Leitor EPUB";
@@ -184,7 +186,9 @@ export default function ReaderPage() {
 
         setReaderMetrics(
           resolvedReaderSource?.type === "epub"
-            ? {}
+            ? {
+              absolutePage: progressData?.current_page || 0,
+            }
             : {
               currentPage: progressData?.current_page || 1,
               totalPages:
@@ -228,31 +232,25 @@ export default function ReaderPage() {
             readerMetrics.totalPages || book.estimatedPages
           ));
 
-      const { currentPage, totalPages } = metrics;
+      const isEpub = readerSource?.type === "epub";
+
+      const { currentPage } = metrics;
+      const totalPages = isEpub
+        ? (readerMetrics.totalPages || book.estimatedPages || 300)
+        : metrics.totalPages;
 
       const minutesSpent = Math.max(
         1,
         Math.round((Date.now() - lastSaveTimestampRef.current) / 60000)
       );
 
-      const isEpub = readerSource?.type === "epub";
+      const absolutePage = isEpub
+        ? (readerMetrics.absolutePage || 0)
+        : currentPage;
 
       const computedProgress = isEpub
-        ? calculateChapterProgress({
-          currentChapter: readerMetrics.currentChapter,
-          totalChapters: readerMetrics.totalChapters,
-          chapterPage: readerMetrics.chapterPage,
-          chapterTotalPages: readerMetrics.chapterTotalPages,
-        })
+        ? (totalPages > 0 ? Math.floor((absolutePage / totalPages) * 100) : 0)
         : progress?.completion_percentage;
-
-      // For epub, derive an absolute page from chapter-progress × estimatedPages.
-      // Use ceil so even 0.x% → at least 1 page; use a generous fallback (300)
-      // so small fractional progress doesn't collapse to 0 when estimatedPages is unset.
-      const estimatedTotal = book.estimatedPages || 300;
-      const absolutePage = isEpub
-        ? (computedProgress > 0 ? Math.max(1, Math.ceil((computedProgress / 100) * estimatedTotal)) : 0)
-        : currentPage;
 
       const pagesDelta = Math.max(0, (absolutePage || 0) - (lastSavedPageRef.current || 0));
 
@@ -347,6 +345,8 @@ export default function ReaderPage() {
                 Capítulo {readerMetrics.currentChapter} / {readerMetrics.totalChapters}
                 {" — "}
                 Pág. {readerMetrics.chapterPage} / {readerMetrics.chapterTotalPages}
+                {" — "}
+                {readerMetrics.absolutePage || 0} / {readerMetrics.totalPages || "..."}
               </>
             ) : (
               <>
@@ -358,7 +358,7 @@ export default function ReaderPage() {
 
           <span className="hidden sm:inline shadow-[inset_0_0_0_1px_rgba(26,95,168,0.08)] py-0.5 px-1.5 text-secondary bg-secondary-light font-bold rounded-xl">
             {readerSource?.type === "epub"
-              ? (epubReady ? calculateChapterProgress(readerMetrics) : progress?.completion_percentage || 0)
+              ? Math.min(100, Math.floor(((readerMetrics.absolutePage || 0) / (readerMetrics.totalPages || book.estimatedPages || 300)) * 100))
               : progress?.completion_percentage || 0}%
           </span>
 
@@ -380,49 +380,51 @@ export default function ReaderPage() {
       </div>
 
       {/* READER */}
-      <div className="flex-1 overflow-hidden">
+      <div ref={readerContainerRef} className="flex-1 overflow-hidden">
         <Suspense fallback={<div className="h-full flex items-center justify-center text-[#64748b]">Carregando...</div>}>
 
           {readerSource?.type === "epub" ? (
-            <ReactReader
+            <EpubReader
               url={readerSource.url}
-              location={location || undefined}
-              getRendition={(r) => {
-                renditionRef.current = r;
+              initialLocation={location || undefined}
+              onRendition={(r) => { renditionRef.current = r; }}
+              onReady={(total) => {
+                setReaderMetrics((prev) => ({ ...prev, totalPages: total }));
+                setEpubReady(true);
+              }}
+              onLocationChange={(loc, spine = []) => {
+                if (!loc?.start) return;
 
-                const spineLength = r?.book?.spine?.items?.length || 0;
-                console.log(r?.book?.spine?.items)
+                setLocation(loc.start.cfi);
+                const chapterIdx = loc.start.index ?? 0;
+                const chapterPage = loc.start.displayed?.page ?? 1;
+                const chapterTotalPages = loc.start.displayed?.total ?? 1;
+
+                chapterPagesRef.current[chapterIdx] = chapterTotalPages;
+                localStorage.setItem(`chapterPages_${bookId}`, JSON.stringify(chapterPagesRef.current));
+
+                const contentChapters = Object.values(chapterPagesRef.current).filter(p => p > 3);
+                const fallback = contentChapters.length > 0
+                  ? Math.round(contentChapters.reduce((s, p) => s + p, 0) / contentChapters.length)
+                  : Math.round((book.estimatedPages || 300) / Math.max(1, spine.length));
+
+                let completedPages = 0;
+                let totalDisplayPages = 0;
+                for (let i = 0; i < spine.length; i++) {
+                  const pages = chapterPagesRef.current[i] || fallback;
+                  if (i < chapterIdx) completedPages += pages;
+                  totalDisplayPages += pages;
+                }
 
                 setReaderMetrics((prev) => ({
                   ...prev,
-                  totalChapters: spineLength,
-                }));
-              }}
-
-              locationChanged={(nextLocation) => {
-                setLocation(nextLocation);
-
-                if (readerSource?.type !== "epub") return;
-
-                const loc = renditionRef.current?.currentLocation?.();
-                if (!loc?.start) return;
-
-                const spine = renditionRef.current?.book?.spine?.items || [];
-
-                const metrics = {
-                  currentChapter: (loc.start.index ?? 0) + 1,
+                  currentChapter: chapterIdx + 1,
                   totalChapters: spine.length || 0,
-                  chapterPage: loc.start.displayed?.page ?? 1,
-                  chapterTotalPages: loc.start.displayed?.total ?? 1,
-                };
-
-                setReaderMetrics(metrics);
-                setEpubReady(true); // 🔥 THIS IS THE REAL “READY SIGNAL”
-              }}
-
-              epubOptions={{
-                allowPopups: true,
-                allowScriptedContent: true,
+                  chapterPage,
+                  chapterTotalPages,
+                  absolutePage: completedPages + chapterPage,
+                  totalPages: totalDisplayPages,
+                }));
               }}
             />
           ) : (
