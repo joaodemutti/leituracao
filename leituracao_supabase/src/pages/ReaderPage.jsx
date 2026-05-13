@@ -191,9 +191,6 @@ export default function ReaderPage() {
             }
             : {
               currentPage: progressData?.current_page || 1,
-              totalPages:
-                progressData?.estimated_pages ||
-                bookResult.data.estimatedPages,
             }
         );
 
@@ -223,20 +220,19 @@ export default function ReaderPage() {
           ? {
             currentPage:
               parsePdfPage(nextLocation) || readerMetrics.currentPage,
-            totalPages:
-              readerMetrics.totalPages || book.estimatedPages,
+            totalPages: readerMetrics.totalPages,
           }
           : readDisplayedMetrics(
             renditionRef.current,
             readerMetrics.currentPage,
-            readerMetrics.totalPages || book.estimatedPages
+            readerMetrics.totalPages
           ));
 
       const isEpub = readerSource?.type === "epub";
 
       const { currentPage } = metrics;
       const totalPages = isEpub
-        ? (readerMetrics.totalPages || book.estimatedPages || 300)
+        ? readerMetrics.totalPages
         : metrics.totalPages;
 
       const minutesSpent = Math.max(
@@ -351,14 +347,14 @@ export default function ReaderPage() {
             ) : (
               <>
                 Pág. {readerMetrics.currentPage || progress?.current_page || 0} /{" "}
-                {readerMetrics.totalPages || progress?.estimated_pages || 0}
+                {readerMetrics.totalPages || 0}
               </>
             )}
           </span>
 
           <span className="hidden sm:inline shadow-[inset_0_0_0_1px_rgba(26,95,168,0.08)] py-0.5 px-1.5 text-secondary bg-secondary-light font-bold rounded-xl">
             {readerSource?.type === "epub"
-              ? Math.min(100, Math.floor(((readerMetrics.absolutePage || 0) / (readerMetrics.totalPages || book.estimatedPages || 300)) * 100))
+              ? (readerMetrics.totalPages > 0 ? Math.min(100, Math.floor(((readerMetrics.absolutePage || 0) / readerMetrics.totalPages) * 100)) : 0)
               : progress?.completion_percentage || 0}%
           </span>
 
