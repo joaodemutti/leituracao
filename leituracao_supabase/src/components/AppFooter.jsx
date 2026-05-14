@@ -1,7 +1,10 @@
-const AUTH_PAGES = new Set(["login", "register"]);
+import { useLocation } from "react-router-dom";
 
-export default function AppFooter({ currentPage }) {
-  const isAuthPage = AUTH_PAGES.has(currentPage);
+const AUTH_PATHS = new Set(["/login", "/register"]);
+
+export default function AppFooter() {
+  const { pathname } = useLocation();
+  const isAuthPage = AUTH_PATHS.has(pathname);
 
   return (
     <footer className="bg-[#07111f] text-white/65">

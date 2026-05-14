@@ -1,4 +1,5 @@
 ﻿import { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { getCurrentUser, isAdminUser } from "../services/AuthService";
 import {
   createBook,
@@ -17,15 +18,6 @@ import {
   uploadBookFile,
 } from "../services/CatalogService";
 
-function parseAdminQuery() {
-  const [, queryString = ""] = window.location.hash.split("?");
-  const params = new URLSearchParams(queryString);
-  return {
-    categoryId: params.get("category") || "",
-    bookId: params.get("book") || "",
-    filterId: params.get("filter") || "",
-  };
-}
 
 const EMPTY_CATEGORY_FORM = {
   id: "",
@@ -176,7 +168,13 @@ function buildBookPayload(form, categoryId) {
 }
 
 export default function AdminCatalogPage() {
-  const adminQuery = useMemo(() => parseAdminQuery(), []);
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const adminQuery = useMemo(() => ({
+    categoryId: searchParams.get("category") || "",
+    bookId: searchParams.get("book") || "",
+    filterId: searchParams.get("filter") || "",
+  }), [searchParams]);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -513,7 +511,7 @@ export default function AdminCatalogPage() {
           <p className="text-gray-600 mb-6">Voce precisa estar autenticado para acessar esta pagina.</p>
           <button
             onClick={() => {
-              window.location.hash = "login";
+              navigate("/login");
             }}
             className="px-6 py-2 bg-secondary text-white rounded font-semibold hover:bg-secondary/90"
           >
@@ -534,7 +532,7 @@ export default function AdminCatalogPage() {
           </p>
           <button
             onClick={() => {
-              window.location.hash = "profile";
+              navigate("/profile");
             }}
             className="px-6 py-2 bg-secondary text-white rounded font-semibold hover:bg-secondary/90"
           >

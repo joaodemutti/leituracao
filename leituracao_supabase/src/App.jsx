@@ -1,4 +1,5 @@
-﻿import { Suspense, lazy, useEffect, useState } from "react";
+import { Suspense, lazy, useEffect, useState } from "react";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { initAuth, isLoggedIn, isAdminUser, refreshCurrentUser } from "./services/AuthService";
 import Navbar from "./components/Navbar";
 import TopBar from "./components/TopBar";
@@ -20,76 +21,32 @@ const SuggestionsPage = lazy(() => import("./pages/SuggestionsPage"));
 const ReadingLogPage = lazy(() => import("./pages/ReadingLogPage"));
 const QuizPage = lazy(() => import("./pages/QuizPage"));
 
-const PROTECTED_PAGES = {
-  profile: ProfilePage,
-  metas: MetasPage,
-  ranking: RankingPage,
-  reader: ReaderPage,
-  progresso: ProgressPage,
-  sugestoes: SuggestionsPage,
-  "registrar-leitura": ReadingLogPage,
-  quiz: QuizPage,
-  admin: AdminCatalogPage,
-};
-
-const PAGES = {
-  home: HomePage,
-  acervo: AcervoPage,
-  metas: MetasPage,
-  ranking: RankingPage,
-  progresso: ProgressPage,
-  sugestoes: SuggestionsPage,
-  "registrar-leitura": ReadingLogPage,
-  quiz: QuizPage,
-  login: LoginPage,
-  register: RegisterPage,
-  profile: ProfilePage,
-  reader: ReaderPage,
-  admin: AdminCatalogPage,
-  educacao: CategoryPage,
-  literatura: CategoryPage,
-  ciencia: CategoryPage,
-  historia: CategoryPage,
-  sociais: CategoryPage,
-  arte: CategoryPage,
-  religiao: CategoryPage,
-  filosofia: CategoryPage,
-};
+function ProtectedRoute({ children, adminOnly = false, currentUser }) {
+  if (!isLoggedIn()) {
+    return <Navigate to="/login" replace />;
+  }
+  if (adminOnly && currentUser && !isAdminUser(currentUser)) {
+    return <Navigate to="/profile" replace />;
+  }
+  return children;
+}
 
 export default function App() {
-  const [currentPage, setCurrentPage] = useState("home");
-  const [routeKey, setRouteKey] = useState(window.location.hash || "#home");
   const [isInitialized, setIsInitialized] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const location = useLocation();
 
   useEffect(() => {
     initAuth().then(() => {
       refreshCurrentUser().then(setCurrentUser);
       setIsInitialized(true);
     });
-
-    const handleHashChange = async () => {
-      const currentHash = window.location.hash || "#home";
-      const hash = currentHash.replace("#", "").split("?")[0] || "home";
-      setCurrentPage(hash);
-      setRouteKey(currentHash);
-      setCurrentUser(await refreshCurrentUser());
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    };
-
-    window.addEventListener("hashchange", handleHashChange);
-    handleHashChange();
-
-    return () => window.removeEventListener("hashchange", handleHashChange);
   }, []);
 
-  if (currentPage in PROTECTED_PAGES && !isLoggedIn()) {
-    window.location.hash = "login";
-  }
-
-  if (currentPage === "admin" && isLoggedIn() && currentUser && !isAdminUser(currentUser)) {
-    window.location.hash = "profile";
-  }
+  useEffect(() => {
+    refreshCurrentUser().then(setCurrentUser);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [location.pathname]);
 
   if (!isInitialized) {
     return (
@@ -99,13 +56,12 @@ export default function App() {
     );
   }
 
-  const PageComponent = PAGES[currentPage] || NotFound;
-  const useAppShell = currentPage !== "reader";
+  const useAppShell = location.pathname !== "/reader";
 
   return (
     <>
       {useAppShell && <TopBar />}
-      {useAppShell && <Navbar currentPage={currentPage} />}
+      {useAppShell && <Navbar />}
       <main id="app-main" className={useAppShell ? "app-surface" : ""}>
         <Suspense
           fallback={
@@ -114,10 +70,34 @@ export default function App() {
             </div>
           }
         >
-          <PageComponent key={routeKey} category={currentPage} />
+          <Routes>
+            <Route path="/" element={<Navigate to="/home" replace />} />
+            <Route path="/home" element={<HomePage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/acervo" element={<AcervoPage />} />
+            <Route path="/ranking" element={<RankingPage />} />
+            <Route path="/metas" element={<ProtectedRoute currentUser={currentUser}><MetasPage /></ProtectedRoute>} />
+            <Route path="/progresso" element={<ProtectedRoute currentUser={currentUser}><ProgressPage /></ProtectedRoute>} />
+            <Route path="/sugestoes" element={<ProtectedRoute currentUser={currentUser}><SuggestionsPage /></ProtectedRoute>} />
+            <Route path="/registrar-leitura" element={<ProtectedRoute currentUser={currentUser}><ReadingLogPage /></ProtectedRoute>} />
+            <Route path="/quiz" element={<ProtectedRoute currentUser={currentUser}><QuizPage /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute currentUser={currentUser}><ProfilePage /></ProtectedRoute>} />
+            <Route path="/reader" element={<ProtectedRoute currentUser={currentUser}><ReaderPage /></ProtectedRoute>} />
+            <Route path="/admin" element={<ProtectedRoute currentUser={currentUser} adminOnly><AdminCatalogPage /></ProtectedRoute>} />
+            <Route path="/educacao" element={<CategoryPage category="educacao" />} />
+            <Route path="/literatura" element={<CategoryPage category="literatura" />} />
+            <Route path="/ciencia" element={<CategoryPage category="ciencia" />} />
+            <Route path="/historia" element={<CategoryPage category="historia" />} />
+            <Route path="/sociais" element={<CategoryPage category="sociais" />} />
+            <Route path="/arte" element={<CategoryPage category="arte" />} />
+            <Route path="/religiao" element={<CategoryPage category="religiao" />} />
+            <Route path="/filosofia" element={<CategoryPage category="filosofia" />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
         </Suspense>
       </main>
-      {useAppShell && <AppFooter currentPage={currentPage} />}
+      {useAppShell && <AppFooter />}
     </>
   );
 }

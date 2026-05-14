@@ -1,4 +1,8 @@
-﻿export default function NotFound() {
+import { useNavigate } from "react-router-dom";
+
+export default function NotFound() {
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen bg-cream flex items-center justify-center px-4">
       <div className="text-center max-w-md">
@@ -10,7 +14,7 @@
           A página que você procura não existe ou foi removida.
         </p>
         <button
-          onClick={() => (window.location.hash = "home")}
+          onClick={() => navigate("/home")}
           className="px-6 py-3 bg-secondary text-white font-semibold rounded-lg hover:bg-secondary/90 transition-colors"
         >
           Voltar ao Início

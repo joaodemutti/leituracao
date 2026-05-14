@@ -1,7 +1,9 @@
 ﻿import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { loginWithOAuth, registerUser } from "../services/AuthService";
 
 export default function RegisterPage() {
+  const navigate = useNavigate();
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -28,7 +30,7 @@ export default function RegisterPage() {
       return;
     }
 
-    window.location.hash = "login?confirm=1";
+    navigate("/login?confirm=1");
   };
 
   const handleOAuth = async (provider) => {
@@ -168,7 +170,7 @@ export default function RegisterPage() {
                 Ja tem conta?{" "}
                 <button
                   onClick={() => {
-                    window.location.hash = "login";
+                    navigate("/login");
                   }}
                   className="font-semibold text-secondary"
                 >

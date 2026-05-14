@@ -1,7 +1,9 @@
 ﻿import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { listCategories } from "../services/CatalogService";
 
 export default function AcervoPage() {
+  const navigate = useNavigate();
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -46,7 +48,7 @@ export default function AcervoPage() {
               <button
                 key={category.id}
                 onClick={() => {
-                  window.location.hash = category.route;
+                  navigate(`/${category.route}`);
                 }}
                 className="panel-card group p-6 text-left transition-all hover:-translate-y-0.5 hover:shadow-md"
               >

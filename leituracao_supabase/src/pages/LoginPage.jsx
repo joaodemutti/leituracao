@@ -1,14 +1,16 @@
 ﻿import { useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { loginUser, loginWithOAuth, requestPasswordReset } from "../services/AuthService";
 
 export default function LoginPage() {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const showConfirmNotice = searchParams.get("confirm") === "1";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-  const [, queryString = ""] = window.location.hash.split("?");
-  const showConfirmNotice = new URLSearchParams(queryString).get("confirm") === "1";
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -22,7 +24,7 @@ export default function LoginPage() {
       return;
     }
 
-    window.location.hash = "home";
+    navigate("/home");
   };
 
   const handleOAuth = async (provider) => {
@@ -152,7 +154,7 @@ export default function LoginPage() {
                 Ainda nao tem conta?{" "}
                 <button
                   onClick={() => {
-                    window.location.hash = "register";
+                    navigate("/register");
                   }}
                   className="!font-semibold hover:!font-bold text-secondary"
                 >

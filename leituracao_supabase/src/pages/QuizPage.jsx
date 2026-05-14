@@ -1,8 +1,10 @@
 ﻿import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { getCurrentUser } from "../services/AuthService";
 import { completeQuizSession, getQuizQuestions } from "../services/ExperienceService";
 
 export default function QuizPage() {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [quizSet, setQuizSet] = useState(null);
   const [questions, setQuestions] = useState([]);
@@ -122,7 +124,7 @@ export default function QuizPage() {
         setSavedXp(sessionResult.data?.xpEarned || 0);
       }
 
-      window.location.hash = "home";
+      navigate("/home");
       return;
     }
 

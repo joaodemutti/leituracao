@@ -1,8 +1,10 @@
 ﻿import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { isAdminUser, logoutUser, refreshCurrentUser } from "../services/AuthService";
 import { getUserStats } from "../services/ReadingService";
 
 export default function ProfilePage() {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -63,7 +65,7 @@ export default function ProfilePage() {
               {isAdminUser(user) && (
                 <button
                   onClick={() => {
-                    window.location.hash = "admin";
+                    navigate("/admin");
                   }}
                   className="rounded-full bg-white px-5 py-3 text-sm font-semibold text-crimson"
                 >
@@ -73,7 +75,7 @@ export default function ProfilePage() {
               <button
                 onClick={async () => {
                   await logoutUser();
-                  window.location.hash = "home";
+                  navigate("/home");
                 }}
                 className="rounded-full border border-white/20 px-5 py-3 text-sm font-semibold text-white"
               >

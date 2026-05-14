@@ -1,4 +1,5 @@
 ﻿import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { getCurrentUser } from "../services/AuthService";
 import { searchBooks } from "../services/CatalogService";
 import {
@@ -15,6 +16,7 @@ const MOODS = [
 ];
 
 export default function ReadingLogPage() {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
@@ -287,7 +289,7 @@ export default function ReadingLogPage() {
               <button
                 type="button"
                 onClick={() => {
-                  window.location.hash = "home";
+                  navigate("/home");
                 }}
                 className="rounded-full border border-[#d7cebf] px-5 py-3 text-sm font-semibold text-crimson"
               >

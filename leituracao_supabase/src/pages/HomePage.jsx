@@ -1,4 +1,5 @@
 ﻿import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { refreshCurrentUser } from "../services/AuthService";
 import { listCategories, listFeaturedBooks } from "../services/CatalogService";
 import { getGoalSummary } from "../services/GoalsService";
@@ -6,6 +7,7 @@ import { getCurrentReading, getLeaderboard, getUserStats } from "../services/Rea
 import { getSuggestions } from "../services/ExperienceService";
 
 export default function HomePage() {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [categories, setCategories] = useState([]);
   const [featuredBooks, setFeaturedBooks] = useState([]);
@@ -107,7 +109,7 @@ export default function HomePage() {
                   </ul>
                   <button
                     onClick={() => {
-                      window.location.hash = "register";
+                      navigate("/register");
                     }}
                     className="mt-6 w-full rounded-full bg-secondary px-5 py-3 font-semibold text-white transition-colors hover:bg-[#d45f00]"
                   >
@@ -122,7 +124,7 @@ export default function HomePage() {
                   </p>
                   <button
                     onClick={() => {
-                      window.location.hash = "login";
+                      navigate("/login");
                     }}
                     className="mt-6 w-full rounded-full bg-crimson px-5 py-3 font-semibold text-white transition-colors hover:bg-crimson-mid"
                   >
@@ -142,7 +144,7 @@ export default function HomePage() {
               </p>
               <button
                 onClick={() => {
-                  window.location.hash = "acervo";
+                  navigate("/acervo");
                 }}
                 className="mt-6 rounded-full border border-[#d9cfbf] px-5 py-3 text-sm font-semibold text-crimson transition-colors hover:bg-[#f6f1e8]"
               >
@@ -155,7 +157,7 @@ export default function HomePage() {
                 <button
                   key={category.id}
                   onClick={() => {
-                    window.location.hash = category.route;
+                    navigate(`/${category.route}`);
                   }}
                   className="panel-card p-6 text-left transition-transform hover:-translate-y-0.5"
                 >
@@ -227,7 +229,7 @@ export default function HomePage() {
               <h2 className="font-serif text-4xl text-crimson">Continue lendo</h2>
               <button
                 onClick={() => {
-                  window.location.hash = "registrar-leitura";
+                  navigate("/registrar-leitura");
                 }}
                 className="text-sm font-semibold text-secondary"
               >
@@ -256,7 +258,7 @@ export default function HomePage() {
               </div>
               <button
                 onClick={() => {
-                  window.location.hash = `reader?book=${currentReading.book_id}`;
+                  navigate(`/reader?book=${currentReading.book_id}`);
                 }}
                 className="rounded-full bg-crimson px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-crimson-mid"
               >
@@ -272,7 +274,7 @@ export default function HomePage() {
               <h2 className="font-serif text-4xl text-crimson">Sugestoes para voce</h2>
               <button
                 onClick={() => {
-                  window.location.hash = "sugestoes";
+                  navigate("/sugestoes");
                 }}
                 className="text-sm font-semibold text-secondary"
               >
@@ -296,7 +298,7 @@ export default function HomePage() {
                     </p>
                     <button
                       onClick={() => {
-                        window.location.hash = `reader?book=${book.id}`;
+                        navigate(`/reader?book=${book.id}`);
                       }}
                       className="mt-2 w-full rounded-full bg-crimson px-4 py-2.5 text-sm font-semibold text-white"
                     >
@@ -336,7 +338,7 @@ export default function HomePage() {
                   <button
                     key={route}
                     onClick={() => {
-                      window.location.hash = route;
+                      navigate(`/${route}`);
                     }}
                     className="rounded-[20px] border border-[#e8dfcf] bg-[#fcfaf5] px-4 py-4 text-left font-semibold text-crimson transition-colors hover:bg-white"
                   >

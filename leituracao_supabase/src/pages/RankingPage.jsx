@@ -1,8 +1,10 @@
 ﻿import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { refreshCurrentUser } from "../services/AuthService";
 import { getLeaderboard } from "../services/ReadingService";
 
 export default function RankingPage() {
+  const navigate = useNavigate();
   const [scope, setScope] = useState("weekly");
   const [entries, setEntries] = useState([]);
   const [user, setUser] = useState(null);
@@ -131,7 +133,7 @@ export default function RankingPage() {
             </p>
             <button
               onClick={() => {
-                window.location.hash = "registrar-leitura";
+                navigate("/registrar-leitura");
               }}
               className="mt-5 rounded-full bg-crimson px-6 py-3 text-sm font-semibold text-white"
             >

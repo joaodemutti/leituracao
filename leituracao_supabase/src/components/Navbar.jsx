@@ -1,27 +1,23 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { isAcervoSection } from "../data/categoriesNav";
 import { isAdminUser, logoutUser, refreshCurrentUser } from "../services/AuthService";
 import { searchBooks } from "../services/SearchService";
 
-export default function Navbar({ currentPage }) {
+export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [searching, setSearching] = useState(false);
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const currentPage = pathname.replace(/^\//, "") || "home";
 
   useEffect(() => {
     refreshCurrentUser().then(setUser);
-
-    const handleHashChange = async () => {
-      const currentUser = await refreshCurrentUser();
-      setUser(currentUser);
-      setMobileMenuOpen(false);
-    };
-
-    window.addEventListener("hashchange", handleHashChange);
-    return () => window.removeEventListener("hashchange", handleHashChange);
-  }, []);
+    setMobileMenuOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     if (!query.trim()) {
@@ -51,13 +47,13 @@ export default function Navbar({ currentPage }) {
   const handleLogout = async () => {
     await logoutUser();
     setUser(null);
-    window.location.hash = "home";
+    navigate("/home");
     setMobileMenuOpen(false);
   };
 
   const handleNavigate = (route) => {
     if (route === "sobre") {
-      window.location.hash = "home";
+      navigate("/home");
       window.requestAnimationFrame(() => {
         document.getElementById("landing-about")?.scrollIntoView({
           behavior: "smooth",
@@ -68,7 +64,7 @@ export default function Navbar({ currentPage }) {
       return;
     }
 
-    window.location.hash = route;
+    navigate(`/${route}`);
     setMobileMenuOpen(false);
   };
 
@@ -150,7 +146,7 @@ export default function Navbar({ currentPage }) {
                     onClick={() => {
                       setQuery("");
                       setResults([]);
-                      window.location.hash = getSearchTarget(book);
+                      navigate(getSearchTarget(book));
                     }}
                     className="flex w-full items-center gap-3 border-b border-[#f0ebdf] px-4 py-3 text-left last:border-b-0 hover:bg-[#faf6ef]"
                   >
@@ -333,5 +329,5 @@ function getInitials(value) {
 }
 
 function getSearchTarget(book) {
-  return book.epubUrl || book.pdfUrl ? `reader?book=${book.id}` : "acervo";
+  return book.epubUrl || book.pdfUrl ? `/reader?book=${book.id}` : "/acervo";
 }

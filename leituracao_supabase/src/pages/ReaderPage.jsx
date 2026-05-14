@@ -3,10 +3,10 @@
   lazy,
   useCallback,
   useEffect,
-  useMemo,
   useRef,
   useState,
 } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { getCurrentUser } from "../services/AuthService";
 import { getBookById, getReaderSource } from "../services/CatalogService";
 import { getProxiedBlob } from "../lib/proxyUrl.js";
@@ -24,10 +24,6 @@ const PDF_LOCATION_PREFIX = "pdf-page:";
   HELPERS
 ========================= */
 
-function getHashParams() {
-  const [, queryString = ""] = window.location.hash.split("?");
-  return new URLSearchParams(queryString);
-}
 
 function readDisplayedMetrics(rendition, fallbackPage, fallbackTotal) {
   if (!rendition) {
@@ -101,6 +97,10 @@ function parsePdfPage(location) {
 ========================= */
 
 export default function ReaderPage() {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const bookId = searchParams.get("book");
+
   const [user, setUser] = useState(null);
   const [book, setBook] = useState(null);
   const [progress, setProgress] = useState(null);
@@ -118,8 +118,8 @@ export default function ReaderPage() {
   const lastSavedPageRef = useRef(0);
   const lastSaveTimestampRef = useRef(Date.now());
   const hasInitializedReaderRef = useRef(false);
-  const bookId = useMemo(() => getHashParams().get("book"), []);
   const chapterPagesRef = useRef({});
+  const accurateChapterPagesRef = useRef(null); // set once by countAllPages, never overridden
   /* =========================
     LOAD
   ========================= */
@@ -134,7 +134,7 @@ export default function ReaderPage() {
       try {
         const currentUser = await getCurrentUser();
         if (!currentUser) {
-          window.location.hash = "login";
+          navigate("/login");
           return;
         }
 
@@ -316,7 +316,7 @@ export default function ReaderPage() {
   if (!book || !readerSource) return null;
 
   return (
-    <div className="h-screen bg-cream flex flex-col">
+    <div className="bg-cream flex flex-col" style={{ height: "100dvh" }}>
 
       {/* HEADER */}
       <div className="bg-crimson border-b border-white/10 px-4 py-3 flex justify-between items-center gap-4">
@@ -328,14 +328,14 @@ export default function ReaderPage() {
 
         <div className="flex items-center gap-4 text-sm text-white shrink-0">
 
-          <span className="hidden sm:inline">
+          <span className="inline">
             {readerSource?.type === "epub" ? (
               <>
-                Capítulo {readerMetrics.currentChapter} / {readerMetrics.totalChapters}
+                {/* Capítulo {readerMetrics.currentChapter} / {readerMetrics.totalChapters}
+                {" — "} */}
+                {readerMetrics.chapterPage} / {readerMetrics.chapterTotalPages}
                 {" — "}
-                Pág. {readerMetrics.chapterPage} / {readerMetrics.chapterTotalPages}
-                {" — "}
-                {readerMetrics.absolutePage || 0} / {readerMetrics.totalPages || "..."}
+                Pág. {readerMetrics.absolutePage || 0} / {readerMetrics.totalPages || "..."}
               </>
             ) : (
               <>
@@ -354,7 +354,7 @@ export default function ReaderPage() {
           <button
             onClick={async () => {
               await persistProgress(location, true);
-              window.location.hash = book.categoryId || "acervo";
+              navigate(`/${book.categoryId || "acervo"}`);
             }}
             className="rounded-full bg-secondary px-4 py-2 text-sm font-semibold text-white hover:bg-[#d45f00] transition-colors"
           >
@@ -369,15 +369,16 @@ export default function ReaderPage() {
       </div>
 
       {/* READER */}
-      <div ref={readerContainerRef} className="flex-1 overflow-auto">
-        <Suspense fallback={<div className="h-full flex items-center justify-center text-[#64748b]">Carregando...</div>}>
+      <div ref={readerContainerRef} className="flex-1 overflow-hidden flex flex-col min-h-0">
+        <Suspense fallback={<div className="flex-1 flex items-center justify-center text-[#64748b]">Carregando...</div>}>
 
           {readerSource?.type === "epub" ? (
             <EpubReader
               url={readerSource.url}
               initialLocation={location || undefined}
               onRendition={(r) => { renditionRef.current = r; }}
-              onReady={(total) => {
+              onReady={(total, perChapter) => {
+                accurateChapterPagesRef.current = perChapter;
                 setReaderMetrics((prev) => ({ ...prev, totalPages: total }));
               }}
               onLocationChange={(loc, spine = []) => {
@@ -390,17 +391,22 @@ export default function ReaderPage() {
 
                 chapterPagesRef.current[chapterIdx] = chapterTotalPages;
 
-                const known = Object.values(chapterPagesRef.current);
-                const avg = known.length > 0
-                  ? Math.round(known.reduce((s, p) => s + p, 0) / known.length)
-                  : 10;
+                const accurate = accurateChapterPagesRef.current;
 
                 let completedPages = 0;
-                let totalPages = 0;
-                for (let i = 0; i < spine.length; i++) {
-                  const pages = chapterPagesRef.current[i] ?? avg;
-                  if (i < chapterIdx) completedPages += pages;
-                  totalPages += pages;
+
+                if (accurate && accurate.length > 0) {
+                  for (let i = 0; i < chapterIdx; i++) {
+                    completedPages += accurate[i] ?? 0;
+                  }
+                } else {
+                  const known = Object.values(chapterPagesRef.current);
+                  const avg = known.length > 0
+                    ? Math.round(known.reduce((s, p) => s + p, 0) / known.length)
+                    : 10;
+                  for (let i = 0; i < chapterIdx; i++) {
+                    completedPages += chapterPagesRef.current[i] ?? avg;
+                  }
                 }
 
                 setReaderMetrics((prev) => ({
@@ -410,7 +416,7 @@ export default function ReaderPage() {
                   chapterPage,
                   chapterTotalPages,
                   absolutePage: completedPages + chapterPage,
-                  totalPages,
+                  // totalPages is never touched here — only onReady sets it
                 }));
               }}
             />

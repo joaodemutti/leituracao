@@ -1,8 +1,10 @@
 ﻿import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { getCurrentUser } from "../services/AuthService";
 import { getSuggestions } from "../services/ExperienceService";
 
 export default function SuggestionsPage() {
+  const navigate = useNavigate();
   const [payload, setPayload] = useState(null);
   const [activeFilter, setActiveFilter] = useState("all");
   const [loading, setLoading] = useState(true);
@@ -90,7 +92,7 @@ export default function SuggestionsPage() {
                     <p className="mt-4 min-h-[74px] text-sm leading-6 text-[#5f6c7c]">{book.reason}</p>
                     <button
                       onClick={() => {
-                        window.location.hash = `reader?book=${book.id}`;
+                        navigate(`/reader?book=${book.id}`);
                       }}
                       className="mt-5 w-full rounded-full bg-crimson px-5 py-3 text-sm font-semibold text-white"
                     >

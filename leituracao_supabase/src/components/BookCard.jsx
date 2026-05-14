@@ -1,10 +1,12 @@
 ﻿import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { isAdminUser, refreshCurrentUser } from "../services/AuthService";
 import { canOpenInReader } from "../services/CatalogService";
 
 export default function BookCard({ book }) {
   const [isOpen, setIsOpen] = useState(false);
   const [canEdit, setCanEdit] = useState(false);
+  const navigate = useNavigate();
 
   const primaryHref = useMemo(
     () => (book.pdfUrl || book.url || book.externalUrl ? book.pdfUrl || book.url || book.externalUrl : null),
@@ -23,12 +25,12 @@ export default function BookCard({ book }) {
   }, []);
 
   const openReader = () => {
-    window.location.hash = `reader?book=${book.id}`;
+    navigate(`/reader?book=${book.id}`);
   };
 
   const openAdminEditor = (event) => {
     event.stopPropagation();
-    window.location.hash = `admin?category=${encodeURIComponent(book.categoryId || "")}&book=${encodeURIComponent(book.id)}`;
+    navigate(`/admin?category=${encodeURIComponent(book.categoryId || "")}&book=${encodeURIComponent(book.id)}`);
   };
 
   return (
