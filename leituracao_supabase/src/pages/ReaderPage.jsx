@@ -3,6 +3,7 @@
   lazy,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -114,12 +115,42 @@ export default function ReaderPage() {
   const [readerMetrics, setReaderMetrics] = useState({});
 
   const renditionRef = useRef(null);
+  const epubNavigateRef = useRef(null);
   const readerContainerRef = useRef(null);
   const lastSavedPageRef = useRef(0);
   const lastSaveTimestampRef = useRef(Date.now());
   const hasInitializedReaderRef = useRef(false);
   const chapterPagesRef = useRef({});
-  const accurateChapterPagesRef = useRef(null); // set once by countAllPages, never overridden
+  const accurateChapterPagesRef = useRef(null);
+  const lastLocRef = useRef(null);
+  const totalPagesRef = useRef(0);
+
+  const pageOptions = useMemo(
+    () => Array.from({ length: readerMetrics.totalPages || 0 }, (_, i) => i + 1),
+    [readerMetrics.totalPages]
+  );
+
+  const navigateToAbsolutePage = useCallback(async (targetPage) => {
+    const perChapter = accurateChapterPagesRef.current;
+    if (!perChapter || !epubNavigateRef.current) return;
+    const total = totalPagesRef.current;
+    const clamped = Math.max(1, Math.min(total || 1, targetPage));
+
+    let remaining = clamped;
+    let chapterIdx = perChapter.length - 1;
+    let pageWithinChapter = perChapter[perChapter.length - 1] || 1;
+
+    for (let i = 0; i < perChapter.length; i++) {
+      if (remaining <= perChapter[i]) {
+        chapterIdx = i;
+        pageWithinChapter = remaining;
+        break;
+      }
+      remaining -= perChapter[i];
+    }
+
+    await epubNavigateRef.current(chapterIdx, pageWithinChapter);
+  }, []);
   /* =========================
     LOAD
   ========================= */
@@ -328,14 +359,22 @@ export default function ReaderPage() {
 
         <div className="flex items-center gap-4 text-sm text-white shrink-0">
 
-          <span className="inline">
+          <span className="inline flex items-center gap-1 text-sm">
             {readerSource?.type === "epub" ? (
               <>
-                {/* Capítulo {readerMetrics.currentChapter} / {readerMetrics.totalChapters}
-                {" — "} */}
-                {readerMetrics.chapterPage} / {readerMetrics.chapterTotalPages}
-                {" — "}
-                Pág. {readerMetrics.absolutePage || 0} / {readerMetrics.totalPages || "..."}
+                {"Pág. "}
+                {pageOptions.length > 0 ? (
+                  <select
+                    value={readerMetrics.absolutePage || 1}
+                    onChange={(e) => { const n = parseInt(e.target.value, 10); if (Number.isFinite(n)) navigateToAbsolutePage(n); }}
+                    style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.25)", borderRadius: 6, color: "white", fontSize: 13, padding: "1px 4px", fontVariantNumeric: "tabular-nums", maxWidth: 64 }}
+                  >
+                    {pageOptions.map((p) => <option key={p} value={p} style={{ background: "#1a1a1a" }}>{p}</option>)}
+                  </select>
+                ) : (
+                  <span>{readerMetrics.absolutePage || 0}</span>
+                )}
+                {" / "}{readerMetrics.totalPages || "..."}
               </>
             ) : (
               <>
@@ -376,37 +415,42 @@ export default function ReaderPage() {
             <EpubReader
               url={readerSource.url}
               initialLocation={location || undefined}
+              navigateRef={epubNavigateRef}
               onRendition={(r) => { renditionRef.current = r; }}
               onReady={(total, perChapter) => {
                 accurateChapterPagesRef.current = perChapter;
-                setReaderMetrics((prev) => ({ ...prev, totalPages: total }));
+                totalPagesRef.current = total;
+                const last = lastLocRef.current;
+                if (last) {
+                  let completedPages = 0;
+                  for (let i = 0; i < last.chapterIdx; i++) completedPages += perChapter[i] ?? 0;
+                  const absolutePage = completedPages + last.chapterPage;
+                  setReaderMetrics((prev) => ({ ...prev, totalPages: total, absolutePage }));
+                } else {
+                  setReaderMetrics((prev) => ({ ...prev, totalPages: total }));
+                }
               }}
-              onLocationChange={(loc, spine = []) => {
+              onLocationChange={(loc, spine = [], manualChapterPage) => {
                 if (!loc?.start) return;
 
                 setLocation(loc.start.cfi);
                 const chapterIdx = loc.start.index ?? 0;
-                const chapterPage = loc.start.displayed?.page ?? 1;
+                const chapterPage = manualChapterPage ?? loc.start.displayed?.page ?? 1;
                 const chapterTotalPages = loc.start.displayed?.total ?? 1;
 
                 chapterPagesRef.current[chapterIdx] = chapterTotalPages;
+                lastLocRef.current = { chapterIdx, chapterPage };
 
                 const accurate = accurateChapterPagesRef.current;
-
                 let completedPages = 0;
-
                 if (accurate && accurate.length > 0) {
-                  for (let i = 0; i < chapterIdx; i++) {
-                    completedPages += accurate[i] ?? 0;
-                  }
+                  for (let i = 0; i < chapterIdx; i++) completedPages += accurate[i] ?? 0;
                 } else {
                   const known = Object.values(chapterPagesRef.current);
                   const avg = known.length > 0
                     ? Math.round(known.reduce((s, p) => s + p, 0) / known.length)
                     : 10;
-                  for (let i = 0; i < chapterIdx; i++) {
-                    completedPages += chapterPagesRef.current[i] ?? avg;
-                  }
+                  for (let i = 0; i < chapterIdx; i++) completedPages += chapterPagesRef.current[i] ?? avg;
                 }
 
                 setReaderMetrics((prev) => ({
@@ -416,11 +460,12 @@ export default function ReaderPage() {
                   chapterPage,
                   chapterTotalPages,
                   absolutePage: completedPages + chapterPage,
-                  // totalPages is never touched here — only onReady sets it
                 }));
               }}
             />
-          ) : (
+          ) : null}
+
+          {readerSource?.type !== "epub" ? (
             <PdfReader
               fileUrl={readerSource.url}
               initialPage={
@@ -441,7 +486,7 @@ export default function ReaderPage() {
                 setLocation(buildPdfLocation(pageNumber));
               }}
             />
-          )}
+          ) : null}
 
         </Suspense>
       </div>

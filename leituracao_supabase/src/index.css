@@ -14,6 +14,11 @@
   --muted: #64748b;
 }
 
+html,
+body {
+  touch-action: manipulation;
+}
+
 html {
   scroll-behavior: smooth;
   font-size: 16px;
