@@ -37,14 +37,33 @@ export default function App() {
   const location = useLocation();
 
   useEffect(() => {
-    initAuth().then(() => {
-      refreshCurrentUser().then(setCurrentUser);
-      setIsInitialized(true);
-    });
+    let isMounted = true;
+
+    initAuth()
+      .then(() => refreshCurrentUser())
+      .then((user) => {
+        if (isMounted) setCurrentUser(user);
+      })
+      .catch((error) => {
+        console.error("Failed to initialize auth", error);
+        if (isMounted) setCurrentUser(null);
+      })
+      .finally(() => {
+        if (isMounted) setIsInitialized(true);
+      });
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   useEffect(() => {
-    refreshCurrentUser().then(setCurrentUser);
+    refreshCurrentUser()
+      .then(setCurrentUser)
+      .catch((error) => {
+        console.error("Failed to refresh auth user", error);
+        setCurrentUser(null);
+      });
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [location.pathname]);
 

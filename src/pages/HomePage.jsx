@@ -16,41 +16,58 @@ export default function HomePage() {
   const [goalSummary, setGoalSummary] = useState(null);
   const [currentReading, setCurrentReading] = useState(null);
   const [leaderboard, setLeaderboard] = useState([]);
+  const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
     let mounted = true;
 
     async function loadPage() {
-      const [userResult, categoriesResult, featuredResult, leaderboardResult] = await Promise.all([
-        refreshCurrentUser(),
-        listCategories(),
-        listFeaturedBooks(5),
-        getLeaderboard(5, "weekly"),
-      ]);
+      try {
+        const [userResult, categoriesResult, featuredResult, leaderboardResult] = await Promise.all([
+          refreshCurrentUser(),
+          listCategories(),
+          listFeaturedBooks(5),
+          getLeaderboard(5, "weekly"),
+        ]);
 
-      if (!mounted) return;
+        if (!mounted) return;
 
-      const currentUser = userResult || null;
-      setUser(currentUser);
-      setCategories(categoriesResult.data || []);
-      setFeaturedBooks(featuredResult.data || []);
-      setLeaderboard(leaderboardResult.data || []);
+        const firstError = categoriesResult.error || featuredResult.error || leaderboardResult.error;
+        if (firstError) {
+          setLoadError(firstError);
+        }
 
-      if (!currentUser) return;
+        const currentUser = userResult || null;
+        setUser(currentUser);
+        setCategories(categoriesResult.data || []);
+        setFeaturedBooks(featuredResult.data || []);
+        setLeaderboard(leaderboardResult.data || []);
 
-      const [statsResult, goalsResult, currentReadingResult, suggestionsResult] = await Promise.all([
-        getUserStats(currentUser.id),
-        getGoalSummary(currentUser.id),
-        getCurrentReading(currentUser.id),
-        getSuggestions(currentUser.id, 4),
-      ]);
+        if (!currentUser) return;
 
-      if (!mounted) return;
+        const [statsResult, goalsResult, currentReadingResult, suggestionsResult] = await Promise.all([
+          getUserStats(currentUser.id),
+          getGoalSummary(currentUser.id),
+          getCurrentReading(currentUser.id),
+          getSuggestions(currentUser.id, 4),
+        ]);
 
-      setStats(statsResult.data || null);
-      setGoalSummary(goalsResult.data || null);
-      setCurrentReading(currentReadingResult.data || null);
-      setSuggestions(suggestionsResult.data?.books || []);
+        if (!mounted) return;
+
+        const userDataError = statsResult.error || goalsResult.error || currentReadingResult.error || suggestionsResult.error;
+        if (userDataError) {
+          setLoadError(userDataError);
+        }
+
+        setStats(statsResult.data || null);
+        setGoalSummary(goalsResult.data || null);
+        setCurrentReading(currentReadingResult.data || null);
+        setSuggestions(suggestionsResult.data?.books || []);
+      } catch (error) {
+        if (!mounted) return;
+        console.error("Failed to load home page", error);
+        setLoadError(error.message || "Nao foi possivel carregar os dados.");
+      }
     }
 
     loadPage();
@@ -134,6 +151,12 @@ export default function HomePage() {
               </div>
             </div>
           </section>
+
+          {loadError && (
+            <p className="rounded-[18px] border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700">
+              Nao foi possivel carregar todos os dados: {loadError}
+            </p>
+          )}
 
           <section id="landing-about" className="grid gap-5 lg:grid-cols-[0.95fr_1.05fr]">
             <article className="panel-card p-7">

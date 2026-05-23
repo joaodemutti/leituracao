@@ -29,19 +29,31 @@ export async function getCurrentUser(options = {}) {
   const { forceRefresh = false } = options;
   if (_currentUser && !forceRefresh) return _currentUser;
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  if (!session) return null;
+  try {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session) return null;
 
-  const { data: perfil } = await supabase
-    .from("usuarios")
-    .select("id, name, email, username,is_admin, created_at")
-    .eq("id", session.user.id)
-    .single();
+    const { data: perfil, error } = await supabase
+      .from("usuarios")
+      .select("id, name, email, username,is_admin, created_at")
+      .eq("id", session.user.id)
+      .single();
 
-  _currentUser = mapSessionProfile(session, perfil);
-  return _currentUser;
+    if (error) {
+      console.error("Failed to load current user profile", error);
+      _currentUser = null;
+      return null;
+    }
+
+    _currentUser = mapSessionProfile(session, perfil);
+    return _currentUser;
+  } catch (error) {
+    console.error("Failed to load current auth session", error);
+    _currentUser = null;
+    return null;
+  }
 }
 
 export async function refreshCurrentUser() {
