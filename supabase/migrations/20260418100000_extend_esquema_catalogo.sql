@@ -63,11 +63,6 @@ create table if not exists public.livros (
   featured_rank integer null,
   estimated_pages integer null,
   is_active boolean not null default true,
-  search_document tsvector generated always as (
-    setweight(to_tsvector('simple', coalesce(title, '')), 'A') ||
-    setweight(to_tsvector('simple', coalesce(author, '')), 'B') ||
-    setweight(to_tsvector('simple', coalesce(summary, '')), 'C')
-  ) stored,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
