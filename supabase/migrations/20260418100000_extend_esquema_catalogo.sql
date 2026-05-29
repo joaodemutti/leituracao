@@ -70,7 +70,6 @@ create table if not exists public.livros (
 create index if not exists books_category_id_idx on public.livros(category_id);
 create index if not exists books_filter_id_idx on public.livros(filter_id);
 create index if not exists books_is_featured_idx on public.livros(is_featured, featured_rank);
-create index if not exists books_search_document_idx on public.livros using gin(search_document);
 
 create trigger books_set_updated_at
 before update on public.livros

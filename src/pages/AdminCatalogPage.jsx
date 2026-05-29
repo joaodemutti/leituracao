@@ -1,5 +1,5 @@
 ﻿import { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { getCurrentUser, isAdminUser } from "../services/AuthService";
 import {
   createBook,
@@ -547,13 +547,23 @@ export default function AdminCatalogPage() {
     <div className="min-h-screen bg-cream py-8 px-4">
       <div className="container max-w-7xl space-y-6">
         <div className="bg-white rounded-lg shadow-md p-6">
-          <p className="text-xs font-semibold uppercase tracking-widest text-secondary mb-2">
-            Admin
-          </p>
-          <h1 className="text-3xl font-serif font-bold text-crimson">Gestao de catalogo</h1>
-          <p className="text-gray-600 mt-2">
-            Edite categorias, filtros e livros usando a role `admin` protegida por RLS.
-          </p>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest text-secondary mb-2">
+                Admin
+              </p>
+              <h1 className="text-3xl font-serif font-bold text-crimson">Gestao de catalogo</h1>
+              <p className="text-gray-600 mt-2">
+                Edite categorias, filtros e livros usando a role `admin` protegida por RLS.
+              </p>
+            </div>
+            <Link
+              to="/admin/quiz"
+              className="mt-1 text-sm font-semibold text-secondary hover:text-secondary/80 transition-colors whitespace-nowrap"
+            >
+              Quizzes →
+            </Link>
+          </div>
         </div>
 
         {error && (

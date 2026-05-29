@@ -16,6 +16,7 @@ const MetasPage = lazy(() => import("./pages/MetasPage"));
 const RankingPage = lazy(() => import("./pages/RankingPage"));
 const ReaderPage = lazy(() => import("./pages/ReaderPage"));
 const AdminCatalogPage = lazy(() => import("./pages/AdminCatalogPage"));
+const AdminQuizPage = lazy(() => import("./pages/AdminQuizPage"));
 const ProgressPage = lazy(() => import("./pages/ProgressPage"));
 const SuggestionsPage = lazy(() => import("./pages/SuggestionsPage"));
 const ReadingLogPage = lazy(() => import("./pages/ReadingLogPage"));
@@ -104,6 +105,7 @@ export default function App() {
             <Route path="/profile" element={<ProtectedRoute currentUser={currentUser}><ProfilePage /></ProtectedRoute>} />
             <Route path="/reader" element={<ProtectedRoute currentUser={currentUser}><ReaderPage /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute currentUser={currentUser} adminOnly><AdminCatalogPage /></ProtectedRoute>} />
+            <Route path="/admin/quiz" element={<ProtectedRoute currentUser={currentUser} adminOnly><AdminQuizPage /></ProtectedRoute>} />
             <Route path="/educacao" element={<CategoryPage category="educacao" />} />
             <Route path="/literatura" element={<CategoryPage category="literatura" />} />
             <Route path="/ciencia" element={<CategoryPage category="ciencia" />} />
