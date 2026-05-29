@@ -1,7 +1,7 @@
 ﻿import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { refreshCurrentUser } from "../services/AuthService";
-import { listCategories, listFeaturedBooks } from "../services/CatalogService";
+import { getPublicStats, listCategories, listFeaturedBooks } from "../services/CatalogService";
 import { getGoalSummary } from "../services/GoalsService";
 import { getCurrentReading, getLeaderboard, getUserStats } from "../services/ReadingService";
 import { getSuggestions } from "../services/ExperienceService";
@@ -16,6 +16,7 @@ export default function HomePage() {
   const [goalSummary, setGoalSummary] = useState(null);
   const [currentReading, setCurrentReading] = useState(null);
   const [leaderboard, setLeaderboard] = useState([]);
+  const [platformStats, setPlatformStats] = useState(null);
   const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
@@ -23,11 +24,12 @@ export default function HomePage() {
 
     async function loadPage() {
       try {
-        const [userResult, categoriesResult, featuredResult, leaderboardResult] = await Promise.all([
+        const [userResult, categoriesResult, featuredResult, leaderboardResult, platformStatsResult] = await Promise.all([
           refreshCurrentUser(),
           listCategories(),
           listFeaturedBooks(5),
           getLeaderboard(5, "weekly"),
+          getPublicStats(),
         ]);
 
         if (!mounted) return;
@@ -42,6 +44,7 @@ export default function HomePage() {
         setCategories(categoriesResult.data || []);
         setFeaturedBooks(featuredResult.data || []);
         setLeaderboard(leaderboardResult.data || []);
+        setPlatformStats(platformStatsResult.data || null);
 
         if (!currentUser) return;
 
@@ -66,7 +69,7 @@ export default function HomePage() {
       } catch (error) {
         if (!mounted) return;
         console.error("Failed to load home page", error);
-        setLoadError(error.message || "Nao foi possivel carregar os dados.");
+        setLoadError(error.message || "Não foi possível carregar os dados.");
       }
     }
 
@@ -85,20 +88,20 @@ export default function HomePage() {
             <div className="grid gap-10 px-6 py-12 md:px-10 md:py-16 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
               <div className="max-w-[640px]">
                 <div className="inline-flex rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm text-white/80">
-                  Mais de 4.200 livros gratuitos para voce
+                  Mais de 4.200 livros gratuitos para você
                 </div>
                 <h1 className="mt-6 max-w-[11ch] text-balance font-serif text-5xl font-semibold leading-[0.95] text-white md:text-7xl">
-                  Bem-vindo a <span className="text-secondary">LeiturAcao</span>
+                  Bem-vindo a <span className="text-secondary">LeiturAção</span>
                 </h1>
                 <p className="mt-6 max-w-[580px] text-lg text-white/76">
-                  Sua biblioteca digital gratuita para ler, salvar progresso, ganhar pontos e subir de nivel em uma jornada de leitura consistente.
+                  Sua biblioteca digital gratuita para ler, salvar progresso, ganhar pontos e subir de nível em uma jornada de leitura consistente.
                 </p>
 
                 <div className="mt-10 grid max-w-[560px] grid-cols-2 gap-4 sm:grid-cols-4">
                   {[
-                    ["4.200+", "Livros"],
-                    ["509", "Autores"],
-                    ["100%", "Gratuito"],
+                    [platformStats ? `${platformStats.totalBooks.toLocaleString("pt-BR")}+` : "...", "Livros"],
+                    [platformStats ? String(platformStats.totalAuthors) : "...", "Autores"],
+                    [platformStats ? `${platformStats.freePercent}%` : "...", "Gratuito"],
                     ["12k+", "Leitores"],
                   ].map(([value, label]) => (
                     <article key={label} className="rounded-[22px] border border-white/20 bg-white/10 px-4 py-5">
@@ -114,13 +117,13 @@ export default function HomePage() {
                   <div className="mb-3 inline-flex rounded-full bg-secondary-light px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-secondary">
                     Recomendado
                   </div>
-                  <h2 className="font-serif text-3xl font-bold">Criar conta gratis</h2>
+                  <h2 className="font-serif text-3xl font-bold">Criar conta grátis</h2>
                   <p className="mt-3 text-sm text-[#5d6979]">
-                    Salve favoritos, acompanhe historico, mantenha sua sequencia e participe do ranking.
+                    Salve favoritos, acompanhe histórico, mantenha sua sequência e participe do ranking.
                   </p>
                   <ul className="mt-5 space-y-2 text-sm text-[#415065]">
-                    <li>Salvar favoritos e historico</li>
-                    <li>Ganhar pontos e subir de nivel</li>
+                    <li>Salvar favoritos e histórico</li>
+                    <li>Ganhar pontos e subir de nível</li>
                     <li>Registrar metas e streak</li>
                     <li>Participar do ranking semanal</li>
                   </ul>
@@ -135,7 +138,7 @@ export default function HomePage() {
                 </article>
 
                 <article className="rounded-[30px] bg-white px-6 py-6 text-crimson shadow-xl">
-                  <h2 className="font-serif text-3xl font-bold">Ja tenho conta</h2>
+                  <h2 className="font-serif text-3xl font-bold">Já tenho conta</h2>
                   <p className="mt-3 text-sm text-[#5d6979]">
                     Entre com seu e-mail e senha para continuar sua jornada.
                   </p>
@@ -154,16 +157,16 @@ export default function HomePage() {
 
           {loadError && (
             <p className="rounded-[18px] border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700">
-              Nao foi possivel carregar todos os dados: {loadError}
+              Não foi possível carregar todos os dados: {loadError}
             </p>
           )}
 
           <section id="landing-about" className="grid gap-5 lg:grid-cols-[0.95fr_1.05fr]">
             <article className="panel-card p-7">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-secondary">Explore o acervo</p>
-              <h2 className="mt-3 font-serif text-4xl text-crimson">Comece lendo sem friccao</h2>
+              <h2 className="mt-3 font-serif text-4xl text-crimson">Comece lendo sem fricção</h2>
               <p className="mt-3 text-[#5e6b7c]">
-                O acervo esta organizado por categoria, com materiais gratuitos, classicos e trilhas para estudo, literatura e formacao pessoal.
+                O acervo está organizado por categoria, com materiais gratuitos, clássicos e trilhas para estudo, literatura e formação pessoal.
               </p>
               <button
                 onClick={() => {
@@ -207,7 +210,7 @@ export default function HomePage() {
               <p className="text-sm text-white/68">☀️ Bom dia, {user.name?.split(" ")[0] || user.username}</p>
               <h1 className="mt-3 font-serif text-4xl text-white md:text-5xl">Continue sua jornada de leitura</h1>
               <div className="mt-5 inline-flex rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm text-secondary">
-                🔥 {stats?.current_streak || 0} dias seguidos — nao perca sua sequencia!
+                🔥 {stats?.current_streak || 0} dias seguidos — não perca sua sequência!
               </div>
               <div className="mt-6 max-w-[430px]">
                 <div className="h-2 rounded-full bg-white/10">
@@ -217,7 +220,7 @@ export default function HomePage() {
                   />
                 </div>
                 <p className="mt-2 text-sm text-white/65">
-                  {stats?.xp_points || 0} / {(stats?.level || 1) * 1000} XP rumo ao proximo nivel
+                  {stats?.xp_points || 0} / {(stats?.level || 1) * 1000} XP rumo ao próximo nível
                 </p>
               </div>
             </div>
@@ -225,7 +228,7 @@ export default function HomePage() {
             <article className="ml-auto flex h-[150px] w-[150px] flex-col items-center justify-center rounded-[28px] border border-white/20 bg-white/10 text-center">
               <p className="font-serif text-5xl text-secondary">{stats?.level || 1}</p>
               <p className="mt-1 text-base text-secondary">Explorador</p>
-              <p className="mt-2 text-xs uppercase tracking-[0.18em] text-white/55">Nivel atual</p>
+              <p className="mt-2 text-xs uppercase tracking-[0.18em] text-white/55">Nível atual</p>
             </article>
           </div>
         </section>
@@ -276,7 +279,7 @@ export default function HomePage() {
                   />
                 </div>
                 <p className="mt-2 text-xs uppercase tracking-[0.18em] text-[#8893a2]">
-                  {currentReading.completion_percentage || 0}% concluido
+                  {currentReading.completion_percentage || 0}% concluído
                 </p>
               </div>
               <button
@@ -294,7 +297,7 @@ export default function HomePage() {
         <section className="grid gap-6 lg:grid-cols-[1fr_360px]">
           <article className="panel-card p-6">
             <div className="mb-6 flex items-center justify-between gap-3">
-              <h2 className="font-serif text-4xl text-crimson">Sugestoes para voce</h2>
+              <h2 className="font-serif text-4xl text-crimson">Sugestões para você</h2>
               <button
                 onClick={() => {
                   navigate("/sugestoes");
@@ -341,7 +344,7 @@ export default function HomePage() {
                   <li key={`${entry.user_id}-${entry.rank}`} className="flex items-center justify-between rounded-[20px] bg-[#fbf8f2] px-4 py-3">
                     <div>
                       <p className="font-semibold text-crimson">{entry.rank}o {entry.display_name}</p>
-                      <p className="text-xs uppercase tracking-[0.14em] text-[#8090a0]">Nivel {entry.level}</p>
+                      <p className="text-xs uppercase tracking-[0.14em] text-[#8090a0]">Nível {entry.level}</p>
                     </div>
                     <p className="font-serif text-2xl text-secondary">{entry.xp_points}</p>
                   </li>
@@ -350,7 +353,7 @@ export default function HomePage() {
             </article>
 
             <article className="panel-card p-6">
-              <h2 className="font-serif text-3xl text-crimson">Acessos rapidos</h2>
+              <h2 className="font-serif text-3xl text-crimson">Acessos rápidos</h2>
               <div className="mt-4 grid gap-3">
                 {[
                   ["Registrar leitura", "registrar-leitura"],

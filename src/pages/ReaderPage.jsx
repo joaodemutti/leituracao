@@ -7,6 +7,7 @@
   useRef,
   useState,
 } from "react";
+import DotsLoader from "../components/DotsLoader.jsx";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { getCurrentUser } from "../services/AuthService";
 import { getBookById, getReaderSource } from "../services/CatalogService";
@@ -24,6 +25,7 @@ const PDF_LOCATION_PREFIX = "pdf-page:";
 /* =========================
   HELPERS
 ========================= */
+
 
 
 function readDisplayedMetrics(rendition, fallbackPage, fallbackTotal) {
@@ -361,9 +363,9 @@ export default function ReaderPage() {
 
           <span className="inline flex items-center gap-1 text-sm">
             {readerSource?.type === "epub" ? (
-              <>
-                {"Pág. "}
-                {pageOptions.length > 0 ? (
+              pageOptions.length > 0 ? (
+                <>
+                  {"Pág. "}
                   <select
                     value={readerMetrics.absolutePage || 1}
                     onChange={(e) => { const n = parseInt(e.target.value, 10); if (Number.isFinite(n)) navigateToAbsolutePage(n); }}
@@ -371,16 +373,22 @@ export default function ReaderPage() {
                   >
                     {pageOptions.map((p) => <option key={p} value={p} style={{ background: "#1a1a1a" }}>{p}</option>)}
                   </select>
-                ) : (
-                  <span>{readerMetrics.absolutePage || 0}</span>
-                )}
-                {" / "}{readerMetrics.totalPages || "..."}
-              </>
+                  {" / "}{readerMetrics.totalPages}
+                </>
+              ) : (
+                <DotsLoader />
+              )
             ) : (
-              <>
-                Pág. {readerMetrics.currentPage || progress?.current_page || 0} /{" "}
-                {readerMetrics.totalPages || 0}
-              </>
+              readerMetrics.totalPages ? (
+                <>
+                  {"Pág. "}
+                  {readerMetrics.currentPage || progress?.current_page}
+                  {" / "}
+                  {readerMetrics.totalPages}
+                </>
+              ) : (
+                <DotsLoader />
+              )
             )}
           </span>
 

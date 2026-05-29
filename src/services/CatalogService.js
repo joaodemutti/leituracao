@@ -260,6 +260,25 @@ export async function getBookById(bookId) {
   return { data: mapBook(data, filterMap) };
 }
 
+export async function getPublicStats() {
+  const { data, error } = await supabase
+    .from("livros")
+    .select("author, is_free")
+    .eq("is_active", true);
+
+  if (error) return { error: error.message };
+
+  const books = data || [];
+  const totalBooks = books.length;
+  const totalAuthors = new Set(books.map((b) => b.author)).size;
+  const freePercent =
+    totalBooks > 0
+      ? Math.round((books.filter((b) => b.is_free).length / totalBooks) * 100)
+      : 100;
+
+  return { data: { totalBooks, totalAuthors, freePercent } };
+}
+
 export async function listFeaturedBooks(limit = 6) {
   const { data, error } = await supabase
     .from("livros")

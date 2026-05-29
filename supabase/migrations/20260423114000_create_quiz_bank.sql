@@ -153,7 +153,7 @@ values (
   'dom-casmurro-basico',
   'Dom Casmurro',
   'Perguntas autorais sobre o romance de Machado de Assis.',
-  'l1',
+  'L2',
   true
 )
 on conflict (id) do update
