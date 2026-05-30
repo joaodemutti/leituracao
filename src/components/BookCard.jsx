@@ -37,7 +37,7 @@ export default function BookCard({ book }) {
     <>
       <article
         onClick={() => setIsOpen(true)}
-        className="overflow-hidden rounded-[26px] border border-[#e8dfcf] bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
+        className="cursor-pointer overflow-hidden rounded-[26px] border border-[#e8dfcf] bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
       >
         <div className="relative flex aspect-[0.9] items-center justify-center overflow-hidden bg-gradient-to-br from-[#f0f5ff] via-[#f7eadc] to-[#f7f4ee]">
           {book.coverUrl ? (
