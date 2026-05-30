@@ -261,22 +261,19 @@ export async function getBookById(bookId) {
 }
 
 export async function getPublicStats() {
-  const { data, error } = await supabase
-    .from("livros")
-    .select("author, is_free")
-    .eq("is_active", true);
+  const [booksResult, userCountResult] = await Promise.all([
+    supabase.from("livros").select("author").eq("is_active", true),
+    supabase.rpc("get_user_count"),
+  ]);
 
-  if (error) return { error: error.message };
+  if (booksResult.error) return { error: booksResult.error.message };
 
-  const books = data || [];
+  const books = booksResult.data || [];
   const totalBooks = books.length;
   const totalAuthors = new Set(books.map((b) => b.author)).size;
-  const freePercent =
-    totalBooks > 0
-      ? Math.round((books.filter((b) => b.is_free).length / totalBooks) * 100)
-      : 100;
+  const totalUsers = userCountResult.data ?? null;
 
-  return { data: { totalBooks, totalAuthors, freePercent } };
+  return { data: { totalBooks, totalAuthors, totalUsers } };
 }
 
 export async function listFeaturedBooks(limit = 6) {

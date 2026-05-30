@@ -101,8 +101,8 @@ export default function HomePage() {
                   {[
                     [platformStats ? `${platformStats.totalBooks.toLocaleString("pt-BR")}+` : "...", "Livros"],
                     [platformStats ? String(platformStats.totalAuthors) : "...", "Autores"],
-                    [platformStats ? `${platformStats.freePercent}%` : "...", "Gratuito"],
-                    ["12k+", "Leitores"],
+                    ["100%", "Gratuito"],
+                    [platformStats?.totalUsers != null ? (platformStats.totalUsers >= 1000 ? `${Math.floor(platformStats.totalUsers / 1000)}k+` : String(platformStats.totalUsers)) : "...", "Leitores"],
                   ].map(([value, label]) => (
                     <article key={label} className="rounded-[22px] border border-white/20 bg-white/10 px-4 py-5">
                       <p className="font-serif text-3xl">{value}</p>
