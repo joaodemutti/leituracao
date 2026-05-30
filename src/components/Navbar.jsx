@@ -46,9 +46,7 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     await logoutUser();
-    setUser(null);
-    navigate("/home");
-    setMobileMenuOpen(false);
+    navigate("/");
   };
 
   const handleNavigate = (route) => {

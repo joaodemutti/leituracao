@@ -214,7 +214,7 @@ export async function requestPasswordReset(email) {
     return { error: "Informe seu e-mail para recuperar a senha." };
   }
 
-  const redirectTo = `${window.location.origin}${window.location.pathname}#login`;
+  const redirectTo = `${window.location.origin}/login`;
 
   const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
     redirectTo,

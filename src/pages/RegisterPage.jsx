@@ -1,6 +1,7 @@
 ﻿import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { loginWithOAuth, registerUser } from "../services/AuthService";
+import GoogleLoginButton from "../components/GoogleLoginButton";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -75,19 +76,8 @@ export default function RegisterPage() {
                 Seu cadastro libera historico de leitura, recomendacoes e progresso sincronizado.
               </p>
 
-              <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                <button
-                  onClick={() => handleOAuth("google")}
-                  className="rounded-2xl border border-[#ddd5c8] bg-[#faf6ef] px-4 py-3 text-sm font-medium text-crimson"
-                >
-                  Entrar com Google
-                </button>
-                <button
-                  onClick={() => handleOAuth("facebook")}
-                  className="rounded-2xl border border-[#ddd5c8] bg-[#faf6ef] px-4 py-3 text-sm font-medium text-crimson"
-                >
-                  Facebook
-                </button>
+              <div className="mt-8 flex justify-center">
+                <GoogleLoginButton onClick={() => handleOAuth("google")} />
               </div>
 
               {error && (

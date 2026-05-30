@@ -1,6 +1,7 @@
 ﻿import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { loginUser, loginWithOAuth, requestPasswordReset } from "../services/AuthService";
+import GoogleLoginButton from "../components/GoogleLoginButton";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -58,21 +59,10 @@ export default function LoginPage() {
             <p className="mt-5 max-w-[32ch] text-base text-white/72">
               Acesse sua conta para continuar lendo, acumular pontos e manter sua sequencia.
             </p>
-            <div className="mt-8 grid gap-4 sm:grid-cols-2">
-              <button
-                onClick={() => handleOAuth("google")}
-                className="rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-sm font-medium text-white/75"
-              >
-                Google
-              </button>
-              <button
-                onClick={() => handleOAuth("facebook")}
-                className="rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-sm font-medium text-white/75"
-              >
-                Facebook
-              </button>
+            <div className="mt-10 flex justify-center">
+              <GoogleLoginButton onClick={() => handleOAuth("google")} />
             </div>
-            <div className="mt-12 rounded-[26px] border border-white/20 bg-white/10 p-5">
+            <div className="mt-10 rounded-[26px] border border-white/20 bg-white/10 p-5">
               <p className="text-sm font-semibold uppercase tracking-[0.16em] text-secondary">Leitura com continuidade</p>
               <p className="mt-3 text-sm text-white/70">
                 Seu progresso, metas e ranking ficam sincronizados na sua conta.

@@ -75,7 +75,7 @@ export default function ProfilePage() {
               <button
                 onClick={async () => {
                   await logoutUser();
-                  navigate("/home");
+                  navigate("/");
                 }}
                 className="rounded-full border border-white/20 px-5 py-3 text-sm font-semibold text-white"
               >
