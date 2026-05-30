@@ -192,7 +192,7 @@ export async function loginUser({ email, password }) {
 }
 
 export async function loginWithOAuth(provider) {
-  const redirectTo = `${window.location.origin}${window.location.pathname}#home`;
+  const redirectTo = `${window.location.origin}/home`;
 
   const { error } = await supabase.auth.signInWithOAuth({
     provider,
