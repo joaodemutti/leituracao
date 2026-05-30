@@ -44,7 +44,7 @@ export default function LoginPage() {
       setError(result.error);
       return;
     }
-    setNotice("Enviamos um link de recuperacao para o seu e-mail.");
+    setNotice("Enviamos um link de recuperação para o seu e-mail.");
   };
 
   return (
@@ -55,9 +55,9 @@ export default function LoginPage() {
             <div className="font-bold shadow-[inset_0_0_0_1px_rgba(26,95,168,0.08)] inline-flex rounded-full text-secondary bg-secondary-light px-4 py-2 text-xs uppercase tracking-[0.18em]">
               Bem-vindo de volta
             </div>
-            <h1 className="mt-6 font-serif text-5xl leading-none">Entre na LeiturAcao</h1>
+            <h1 className="mt-6 font-serif text-5xl leading-none">Entre na LeiturAção</h1>
             <p className="mt-5 max-w-[32ch] text-base text-white/72">
-              Acesse sua conta para continuar lendo, acumular pontos e manter sua sequencia.
+              Acesse sua conta para continuar lendo, acumular pontos e manter sua sequência.
             </p>
             <div className="mt-10 rounded-[26px] border border-white/20 bg-white/10 p-5">
               <p className="text-sm font-semibold uppercase tracking-[0.16em] text-secondary">Leitura com continuidade</p>
@@ -72,7 +72,7 @@ export default function LoginPage() {
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-secondary">Entrar com e-mail</p>
               <h2 className="mt-3 font-serif text-4xl text-crimson">Acesse sua conta</h2>
               <p className="mt-3 text-sm text-[#5e6b7c]">
-                Continue de onde voce parou e mantenha sua evolucao registrada.
+                Continue de onde você parou e mantenha sua evolução registrada.
               </p>
 
               <div className="mt-8 flex justify-center">

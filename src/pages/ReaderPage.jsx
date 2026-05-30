@@ -222,7 +222,7 @@ export default function ReaderPage() {
 
         lastSavedPageRef.current = progressData?.current_page || 0;
       } catch (err) {
-        setError(err.message || "Nao foi possivel abrir o livro.");
+        setError(err.message || "Não foi possível abrir o livro.");
       } finally {
         if (mounted) setLoading(false);
       }

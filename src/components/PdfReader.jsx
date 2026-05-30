@@ -94,7 +94,7 @@ export default function PdfReader({ fileUrl, initialPage = 1, onDocumentReady, o
         <Document
           file={fileUrl}
           onLoadSuccess={handleDocumentLoadSuccess}
-          onLoadError={(error) => setLoadError(error.message || "Nao foi possivel carregar o PDF.")}
+          onLoadError={(error) => setLoadError(error.message || "Não foi possível carregar o PDF.")}
           loading={
             <div className="flex items-center justify-center text-[#64748b]">
               Carregando PDF...
@@ -102,7 +102,7 @@ export default function PdfReader({ fileUrl, initialPage = 1, onDocumentReady, o
           }
           error={
             <div className="flex items-center justify-center text-center text-red-600 px-4">
-              {loadError || "Nao foi possivel carregar o PDF."}
+              {loadError || "Não foi possível carregar o PDF."}
             </div>
           }
         >

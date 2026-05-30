@@ -508,7 +508,7 @@ export default function AdminCatalogPage() {
       <div className="min-h-screen bg-cream flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-crimson mb-4">Acesso restrito</h1>
-          <p className="text-gray-600 mb-6">Voce precisa estar autenticado para acessar esta pagina.</p>
+          <p className="text-gray-600 mb-6">Você precisa estar autenticado para acessar esta página.</p>
           <button
             onClick={() => {
               navigate("/login");
@@ -1094,7 +1094,7 @@ export default function AdminCatalogPage() {
                     />
                   </label>
                   <label className="text-sm text-gray-700">
-                    <span className="block mb-1 font-medium">Paginas</span>
+                    <span className="block mb-1 font-medium">Páginas</span>
                     <input
                       type="number"
                       value={bookForm.estimated_pages}

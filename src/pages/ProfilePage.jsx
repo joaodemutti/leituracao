@@ -43,7 +43,7 @@ export default function ProfilePage() {
         <div className="container flex justify-center">
           <div className="panel-card max-w-[560px] px-8 py-12 text-center">
             <h1 className="font-serif text-4xl text-crimson">Acesso restrito</h1>
-            <p className="mt-4 text-[#607082]">Voce precisa estar autenticado para acessar esta pagina.</p>
+            <p className="mt-4 text-[#607082]">Você precisa estar autenticado para acessar esta página.</p>
           </div>
         </div>
       </div>
@@ -90,7 +90,7 @@ export default function ProfilePage() {
             {[
               ["Livros lidos", stats.total_books_read || 0],
               ["XP total", stats.xp_points || 0],
-              ["Paginas lidas", stats.total_pages_read || 0],
+              ["Páginas lidas", stats.total_pages_read || 0],
               ["Melhor streak", stats.best_streak || 0],
             ].map(([label, value]) => (
               <article key={label} className="panel-card px-5 py-6">

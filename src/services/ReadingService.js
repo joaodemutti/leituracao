@@ -381,7 +381,7 @@ export async function getBookProgress(userId, bookId) {
     .maybeSingle();
 
   if (error) return { error: error.message };
-  if (!data) return { error: "Voce ainda nao comecou a ler este livro." };
+  if (!data) return { error: "Você ainda não começou a ler este livro." };
   return { data };
 }
 

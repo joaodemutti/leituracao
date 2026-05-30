@@ -43,7 +43,7 @@ export default function SuggestionsPage() {
     <div className="page-section">
       <div className="container space-y-7">
         <section className="hero-shadow overflow-hidden rounded-[34px] bg-crimson-dark px-6 py-10 text-white md:px-10">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-secondary">Sugestoes para voce</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-secondary">Sugestões para você</p>
           <h1 className="mt-4 font-serif text-5xl">Livros alinhados ao seu perfil</h1>
           <p className="mt-4 max-w-[740px] text-white/72">
             As recomendacoes abaixo usam seu historico recente, categoria em andamento e destaques do acervo para priorizar o que faz mais sentido agora.

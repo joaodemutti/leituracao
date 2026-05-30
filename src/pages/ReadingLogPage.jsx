@@ -213,7 +213,7 @@ export default function ReadingLogPage() {
 
             <div className="grid gap-4 md:grid-cols-2">
               <label className="text-sm font-medium text-crimson">
-                Pagina inicial
+                Página inicial
                 <input
                   type="number"
                   min="0"
@@ -223,7 +223,7 @@ export default function ReadingLogPage() {
                 />
               </label>
               <label className="text-sm font-medium text-crimson">
-                Pagina final
+                Página final
                 <input
                   type="number"
                   min={form.startPage}
@@ -258,19 +258,19 @@ export default function ReadingLogPage() {
                 value={form.note}
                 onChange={(event) => setForm((current) => ({ ...current, note: event.target.value }))}
                 className="mt-2 h-28 w-full rounded-2xl border border-[#ddd5c8] px-4 py-3 focus:border-secondary focus:outline-none"
-                placeholder="O que voce achou dessa parte?"
+                placeholder="O que você achou dessa parte?"
               />
             </label>
 
             <div className="rounded-[26px] bg-crimson px-5 py-5 text-white">
-              <p className="font-semibold">Voce vai ganhar pontos</p>
+              <p className="font-semibold">Você vai ganhar pontos</p>
               <p className="mt-2 text-white/72">
-                {xpPreview.pagesDelta} paginas lidas - humor {form.mood}
+                {xpPreview.pagesDelta} páginas lidas - humor {form.mood}
               </p>
               <div className="mt-3 space-y-1 text-sm text-white/72">
-                <p>{xpPreview.baseXp} XP por paginas</p>
+                <p>{xpPreview.baseXp} XP por páginas</p>
                 <p>{xpPreview.moodBonus} XP bonus de humor</p>
-                <p>{xpPreview.streakBonus} XP bonus de sequencia</p>
+                <p>{xpPreview.streakBonus} XP bônus de sequência</p>
               </div>
               <p className="mt-3 font-serif text-4xl text-secondary">+{xpPreview.totalXp} XP</p>
             </div>
@@ -307,11 +307,11 @@ export default function ReadingLogPage() {
         </section>
 
         <aside className="panel-card p-6">
-          <h2 className="font-serif text-4xl text-crimson">Historico recente</h2>
+          <h2 className="font-serif text-4xl text-crimson">Histórico recente</h2>
           <div className="mt-5 space-y-3">
             {history.length === 0 && (
               <p className="rounded-[22px] bg-[#fbf8f2] px-4 py-4 text-sm text-[#687789]">
-                Suas ultimas leituras aparecerao aqui assim que voce registrar a primeira sessao.
+                Suas últimas leituras aparecerão aqui assim que você registrar a primeira sessão.
               </p>
             )}
             {history.map((entry) => (

@@ -139,7 +139,7 @@ export default function MetasPage() {
                 className="mt-2 w-full rounded-2xl border border-[#ddd5c8] px-4 py-3 focus:border-secondary focus:outline-none"
               >
                 <option value="books">Livros</option>
-                <option value="pages">Paginas</option>
+                <option value="pages">Páginas</option>
                 <option value="minutes">Minutos</option>
                 <option value="streak">Streak</option>
               </select>
@@ -243,9 +243,9 @@ export default function MetasPage() {
         </section>
 
         <section className="panel-card p-6">
-          <h2 className="font-serif text-4xl text-crimson">Metas concluidas</h2>
+          <h2 className="font-serif text-4xl text-crimson">Metas concluídas</h2>
           <div className="mt-5 space-y-3">
-            {completedGoals.length === 0 && <p className="text-[#64748b]">Voce ainda nao concluiu nenhuma meta.</p>}
+            {completedGoals.length === 0 && <p className="text-[#64748b]">Você ainda não concluiu nenhuma meta.</p>}
             {completedGoals.map((goal) => (
               <article key={goal.id} className="rounded-[22px] bg-[#e9fff1] px-4 py-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">

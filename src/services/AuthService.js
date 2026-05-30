@@ -192,7 +192,7 @@ export async function loginUser({ email, password }) {
 }
 
 export async function loginWithOAuth(provider) {
-  const redirectTo = `${window.location.origin}/home`;
+  const redirectTo = `https://leituracao.ong.br`;
 
   const { error } = await supabase.auth.signInWithOAuth({
     provider,
@@ -202,7 +202,7 @@ export async function loginWithOAuth(provider) {
   });
 
   if (error) {
-    return { error: "Nao foi possivel iniciar o login social." };
+    return { error: "Não foi possível iniciar o login social." };
   }
 
   return {};
@@ -221,7 +221,7 @@ export async function requestPasswordReset(email) {
   });
 
   if (error) {
-    return { error: "Nao foi possivel enviar o e-mail de recuperacao." };
+    return { error: "Não foi possível enviar o e-mail de recuperação." };
   }
 
   return { data: true };

@@ -114,7 +114,7 @@ export default function RankingPage() {
                   <div>
                     <p className="font-semibold text-crimson">
                       {entry.display_name}
-                      {entry.user_id === user?.id ? " (voce)" : ""}
+                      {entry.user_id === user?.id ? " (você)" : ""}
                     </p>
                     <p className="text-sm text-[#748395]">Nivel {entry.level} - @{entry.username}</p>
                   </div>
@@ -129,7 +129,7 @@ export default function RankingPage() {
           <section className="panel-card px-6 py-6 text-center">
             <h2 className="font-serif text-3xl text-crimson">Suba no ranking</h2>
             <p className="mt-3 text-[#627183]">
-              Voce esta em {currentUserRow.rank} lugar. Registre mais leitura e responda quizzes para ganhar mais XP.
+              Você está em {currentUserRow.rank} lugar. Registre mais leitura e responda quizzes para ganhar mais XP.
             </p>
             <button
               onClick={() => {

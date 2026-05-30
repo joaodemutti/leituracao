@@ -54,9 +54,9 @@ export default function ProgressPage() {
               </div>
             </div>
             <div>
-              <h1 className="font-serif text-5xl">Explorador Literario</h1>
+              <h1 className="font-serif text-5xl">Explorador Literário</h1>
               <p className="mt-3 text-white/70">
-                Voce esta no caminho certo. Mais {1000 - (snapshot.totalXp % 1000)} XP para o proximo nivel.
+                Você está no caminho certo. Mais {1000 - (snapshot.totalXp % 1000)} XP para o próximo nível.
               </p>
               <div className="mt-5 h-2.5 rounded-full bg-white/10">
                 <div className="h-full rounded-full bg-secondary" style={{ width: `${levelProgress}%` }} />
@@ -96,9 +96,9 @@ export default function ProgressPage() {
         <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {[
             ["Livros lidos", snapshot.totalBooksRead],
-            ["Paginas lidas", snapshot.totalPagesRead],
+            ["Páginas lidas", snapshot.totalPagesRead],
             ["Streak atual", snapshot.currentStreak],
-            ["Quizzes concluidos", snapshot.quizSummary?.sessionsCount || 0],
+            ["Quizzes concluídos", snapshot.quizSummary?.sessionsCount || 0],
           ].map(([label, value]) => (
             <article key={label} className="panel-card px-5 py-6">
               <p className="font-serif text-4xl text-crimson">{value}</p>
@@ -131,7 +131,7 @@ export default function ProgressPage() {
                 <div key={session.id} className="flex flex-wrap items-center justify-between gap-3 rounded-[22px] bg-[#fbf8f2] px-4 py-4">
                   <div>
                     <p className="font-semibold text-crimson">
-                      {session.book?.title || "Sessao de leitura"} - {session.pages} paginas
+                      {session.book?.title || "Sessão de leitura"} - {session.pages} páginas
                     </p>
                     <p className="text-sm text-[#657385]">{session.date}</p>
                   </div>

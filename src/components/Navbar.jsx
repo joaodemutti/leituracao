@@ -72,13 +72,13 @@ export default function Navbar() {
         <button
           onClick={() => handleNavigate("home")}
           className="flex flex-shrink-0 items-center gap-3"
-          aria-label="LeiturAcao - Ir para o inicio"
+          aria-label="LeiturAção - Ir para o início"
         >
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-crimson text-[10px] font-semibold uppercase tracking-[0.12em] text-white shadow-sm">
             LA
           </div>
           <div className="hidden whitespace-nowrap font-serif text-[1.95rem] font-semibold leading-none text-crimson-dark sm:block">
-            Leitur<span className="text-secondary">Acao</span>
+            Leitur<span className="text-secondary">Ação</span>
           </div>
         </button>
 
@@ -299,7 +299,7 @@ function buildNavLinks(user) {
       { route: "metas", label: "Metas" },
       { route: "ranking", label: "Ranking" },
       { route: "progresso", label: "Progresso" },
-      { route: "sugestoes", label: "Sugestoes" },
+      { route: "sugestoes", label: "Sugestões" },
       { route: "quiz", label: "Quiz" },
     );
   } else {

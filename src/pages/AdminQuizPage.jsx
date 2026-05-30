@@ -540,7 +540,7 @@ export default function AdminQuizPage() {
         <div className="text-center">
           <h1 className="text-2xl font-bold text-crimson mb-4">Acesso restrito</h1>
           <p className="text-gray-600 mb-6">
-            Voce precisa estar autenticado para acessar esta pagina.
+            Você precisa estar autenticado para acessar esta página.
           </p>
           <button
             onClick={() => navigate("/login")}

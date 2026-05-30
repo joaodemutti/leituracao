@@ -172,7 +172,7 @@ export async function getSuggestions(userId, limit = 6) {
           book.author === currentAuthor
             ? `Continua sua trilha com ${book.author}.`
             : book.category_id === currentCategory
-              ? `Combina com a categoria que voce esta lendo agora.`
+              ? `Combina com a categoria que você está lendo agora.`
               : "Selecionado entre os destaques mais relevantes do acervo.",
         categoryId: book.category_id,
         categoryLabel: book.categorias?.label || "Acervo",
