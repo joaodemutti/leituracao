@@ -59,9 +59,6 @@ export default function LoginPage() {
             <p className="mt-5 max-w-[32ch] text-base text-white/72">
               Acesse sua conta para continuar lendo, acumular pontos e manter sua sequencia.
             </p>
-            <div className="mt-10 flex justify-center">
-              <GoogleLoginButton onClick={() => handleOAuth("google")} />
-            </div>
             <div className="mt-10 rounded-[26px] border border-white/20 bg-white/10 p-5">
               <p className="text-sm font-semibold uppercase tracking-[0.16em] text-secondary">Leitura com continuidade</p>
               <p className="mt-3 text-sm text-white/70">
@@ -77,6 +74,10 @@ export default function LoginPage() {
               <p className="mt-3 text-sm text-[#5e6b7c]">
                 Continue de onde voce parou e mantenha sua evolucao registrada.
               </p>
+
+              <div className="mt-8 flex justify-center">
+                <GoogleLoginButton onClick={() => handleOAuth("google")} />
+              </div>
 
               {showConfirmNotice && (
                 <div className="mt-6 rounded-[20px] border border-[#d6e4f7] bg-[#eef5ff] px-4 py-3 text-sm text-secondary">
