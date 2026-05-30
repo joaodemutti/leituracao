@@ -10,7 +10,7 @@
 }
 
 :root {
-  color-scheme: light;
+  color-scheme: only light;
   --surface: #f7f2e9;
   --surface-strong: #f1eadc;
   --paper: #ffffff;
