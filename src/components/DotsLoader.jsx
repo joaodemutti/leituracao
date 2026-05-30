@@ -4,8 +4,8 @@ export default function DotsLoader() {
       {[0, 1, 2].map((i) => (
         <span
           key={i}
-          className="size-1 rounded-full bg-current animate-bounce"
-          style={{ animationDelay: `${i * 0.16}s` }}
+          className="size-1.5 rounded-full bg-current"
+          style={{ animation: `heavy-bounce 0.9s ease-in-out ${i * 0.2}s infinite` }}
         />
       ))}
     </span>

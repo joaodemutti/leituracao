@@ -5,6 +5,7 @@ import { getPublicStats, listCategories, listFeaturedBooks } from "../services/C
 import { getGoalSummary } from "../services/GoalsService";
 import { getCurrentReading, getLeaderboard, getUserStats } from "../services/ReadingService";
 import { getSuggestions } from "../services/ExperienceService";
+import DotsLoader from "../components/DotsLoader";
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -99,10 +100,10 @@ export default function HomePage() {
 
                 <div className="mt-10 grid max-w-[560px] grid-cols-2 gap-4 sm:grid-cols-4">
                   {[
-                    [platformStats ? `${platformStats.totalBooks.toLocaleString("pt-BR")}+` : "...", "Livros"],
-                    [platformStats ? String(platformStats.totalAuthors) : "...", "Autores"],
-                    ["100%", "Gratuito"],
-                    [platformStats?.totalUsers != null ? (platformStats.totalUsers >= 1000 ? `${Math.floor(platformStats.totalUsers / 1000)}k+` : String(platformStats.totalUsers)) : "...", "Leitores"],
+                    [platformStats ? `${platformStats.totalBooks.toLocaleString("pt-BR")}+` : <DotsLoader />, "Livros"],
+                    [platformStats ? String(platformStats.totalAuthors) : <DotsLoader />, "Autores"],
+                    [platformStats ? `100%` : <DotsLoader />, "Gratuito"],
+                    [platformStats?.totalUsers != null ? (platformStats.totalUsers >= 1000 ? `${Math.floor(platformStats.totalUsers / 1000)}k+` : String(platformStats.totalUsers)) : <DotsLoader />, "Leitores"],
                   ].map(([value, label]) => (
                     <article key={label} className="rounded-[22px] border border-white/20 bg-white/10 px-4 py-5">
                       <p className="font-serif text-3xl">{value}</p>
